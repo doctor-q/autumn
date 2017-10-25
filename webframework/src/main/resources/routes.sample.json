@@ -1,0 +1,59 @@
+{
+  "__exceptionHandlers": {
+    "default": "cc.doctor.framework.web.exception.SimpleResultExceptionHandler",
+    "custom": "cc.doctor.framework.web.MyExceptionHandler"
+  },
+  "__globalExceptionHandler": "default",
+  "__requestParser":{},
+  "__responseParser":{
+    "parseClasses":[]
+  },
+  "__viewResolvers":[
+    {
+      "name":"jsp",
+      "prefix":"",
+      "suffix":".jsp"
+    }
+  ],
+  "__default_service_package": "cc.doctor.web",
+  "__routes": {
+    "/parent": {
+      "/child": [
+        "Service",
+        "method",
+        "custom"
+      ],
+      "/goods": {
+        "/table": [
+          "Table",
+          "do"
+        ],
+        "__other": [
+          "Other",
+          "do"
+        ],
+        "/chair": [
+          "Chair",
+          "do"
+        ]
+      },
+      "__other": [
+        "Other",
+        "service"
+      ],
+      "/animals": {
+        "/dog": {
+          "/big": [
+            "Dog",
+            "small"
+          ],
+          "/small": [
+            "Dog",
+            "big"
+          ]
+        }
+      }
+    }
+  },
+  "__static":{}
+}
