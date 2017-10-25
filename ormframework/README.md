@@ -114,4 +114,6 @@ select * from test
 where $ifNotNull{ids, id in ($join{ids, ,})} 
 $ifNotNull{cc.name, and name like '{{cc.name}}%'}
 ```
-二元宏：``` $macroName```
+二元宏：``` $macroName{path, right}```  
+  path是获取数据的路径  
+  right是左指，可以是常量，也可以是带有宏的字符串

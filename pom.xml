@@ -29,6 +29,7 @@
         <module>cacheframework</module>
         <module>mockframework</module>
         <module>templateframework</module>
+        <module>logframework</module>
     </modules>
     <dependencyManagement>
         <dependencies>
