@@ -1,5 +1,7 @@
 package cc.doctor.framework.ioc.binding;
 
+import java.lang.annotation.Annotation;
+
 public interface Binder {
     Binding bind(BindKey bindKey);
 
@@ -7,9 +9,5 @@ public interface Binder {
 
     Binding bind(Class clazz);
 
-    Binding withAnnotation(Class annotation);
-
-    Binding to(Class clazz);
-
-    <T> Binding to(T instance);
+    Binding bind(Annotation annotation);
 }

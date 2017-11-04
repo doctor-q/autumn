@@ -6,10 +6,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 实现，某个接口或类的实现
+ * 工厂方法
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface Implement {
+@Target({ElementType.TYPE, ElementType.METHOD})
+public @interface Provider {
     Class value();
+    String scope() default "singleton";
 }
