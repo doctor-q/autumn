@@ -1,11 +1,22 @@
 package cc.doctor.framework.utils;
 
+
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by doctor on 2017/7/12.
  */
 public class CollectionUtils {
+    public static <T> Set<T> asSet(T[] array) {
+        Set<T> tSet = new HashSet<>();
+        for (T t : array) {
+            tSet.add(t);
+        }
+        return tSet;
+    }
+
     public abstract static class JoinerFilter<F, T> {
         public abstract T filter(F item);
         public boolean apply(F value) {

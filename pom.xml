@@ -30,6 +30,7 @@
         <module>mockframework</module>
         <module>templateframework</module>
         <module>logframework</module>
+        <module>httpproxyframework</module>
     </modules>
     <dependencyManagement>
         <dependencies>
