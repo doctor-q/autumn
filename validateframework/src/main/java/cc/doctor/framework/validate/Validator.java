@@ -8,7 +8,6 @@ import java.lang.annotation.Annotation;
  */
 public interface Validator<A extends Annotation> {
 
-    boolean validate(A annotation, String field, Object value) throws InvalidException;
-
+    void validate(A annotation, Object value) throws InvalidException;
 }
 

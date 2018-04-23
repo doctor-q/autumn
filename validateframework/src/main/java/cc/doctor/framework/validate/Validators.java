@@ -1,250 +1,235 @@
 package cc.doctor.framework.validate;
 
 import cc.doctor.framework.entity.Range;
-import cc.doctor.framework.validate.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
 
 public class Validators {
-    public static Validator<ArrayLength> arrayLengthValidator() {
-        return new Validator<ArrayLength>() {
-            @Override
-            public boolean validate(ArrayLength annotation, String field, Object value) throws InvalidException {
-                if (value == null) {
-                    return true;
-                }
-                Range<Integer> range = new Range<>(annotation.min(), annotation.max());
-                int length;
-                if (value instanceof Collection) {
-                    length = ((Collection) value).size();
-                } else if (value instanceof Map) {
-                    length = ((Map) value).keySet().size();
-                } else if (value instanceof Object[]) {
-                    length = ((Object[]) value).length;
-                } else {
-                    length = 1;
-                }
-                if (!range.over(length)) {
-                    throw new InvalidException(String.format("Array[%s] length=%s not in range%s", field, length, range.toRangeString()));
-                }
-                return true;
-            }
-        };
+    private static final Logger log = LoggerFactory.getLogger(Validators.class);
+
+    public static void validateArrayLength(Object value, Integer min, Integer max) throws InvalidException {
+        Range<Integer> range = new Range<>(min, max);
+        int length;
+        if (value instanceof Collection) {
+            length = ((Collection) value).size();
+        } else if (value instanceof Map) {
+            length = ((Map) value).keySet().size();
+        } else if (value instanceof Object[]) {
+            length = ((Object[]) value).length;
+        } else {
+            length = 1;
+        }
+        if (!range.over(length)) {
+            throw new InvalidException(String.format("Array length=%s not in range%s", length, range.toRangeString()));
+        }
     }
 
-    public static Validator<EnumIn> enumInValidator() {
-        return new Validator<EnumIn>() {
-            @Override
-            public boolean validate(EnumIn annotation, String field, Object value) throws InvalidException {
-                return false;
+    public static void validateEnumIn(Object value, Class enumClass) throws InvalidException {
+        if (value == null) {
+            throw new NullValueException();
+        }
+        try {
+            Method method = enumClass.getMethod("values");
+            Object[] invoke = (Object[]) method.invoke(null, null);
+            for (Object object : invoke) {
+                if (value.equals(object)) {
+                    return;
+                }
             }
-        };
+            throw new InvalidException(String.format("Value %s not in enum %s", value, enumClass.getName()));
+        } catch (Exception e) {
+            log.error("", e);
+        }
     }
 
-    public static Validator<IntegerIn> integerInValidator() {
-        return new Validator<IntegerIn>() {
-            @Override
-            public boolean validate(IntegerIn annotation, String field, Object value) throws InvalidException {
-                if (value == null) {
-                    return false;
-                }
-                int anInt = Integer.parseInt(value.toString());
-                for (int i : annotation.value()) {
-                    if (i == anInt) {
-                        return true;
-                    }
-                }
-                return false;
+    public static void validateIntegerIn(Object value, int[] values) throws InvalidException {
+        if (value == null) {
+            throw new NullValueException();
+        }
+        int anInt = Integer.parseInt(value.toString());
+        for (int i : values) {
+            if (i == anInt) {
+                return;
             }
-        };
+        }
+        throw new InvalidException(String.format("Value[%s] not in %s", value, Arrays.toString(values)));
     }
 
-    public static Validator<IntegerNotIn> integerNotInValidator() {
-        return new Validator<IntegerNotIn>() {
-            @Override
-            public boolean validate(IntegerNotIn annotation, String field, Object value) throws InvalidException {
-                if (value == null) {
-                    return true;
-                }
-                int anInt = Integer.parseInt(value.toString());
-                for (int i : annotation.value()) {
-                    if (i == anInt) {
-                        return false;
-                    }
-                }
-                return true;
+    public static void validateIntegerNotIn(Object value, int[] values) throws InvalidException {
+        if (value == null) {
+            return;
+        }
+        int anInt = Integer.parseInt(value.toString());
+        for (int i : values) {
+            if (i == anInt) {
+                throw new InvalidException(String.format("Value[%s] in %s", value, Arrays.toString(values)));
             }
-        };
+        }
     }
 
-    public static Validator<Ipv4> ipv4Validator() {
-        return new Validator<Ipv4>() {
-            @Override
-            public boolean validate(Ipv4 annotation, String field, Object value) throws InvalidException {
-                if (value == null) {
-                    return false;
+    public static void validateStringIn(Object value, String[] strings) throws InvalidException {
+        if (value == null) {
+            throw new NullValueException();
+        }
+        for (String s : strings) {
+            if (s.equals(value.toString())) {
+                return;
+            }
+        }
+        throw new InvalidException(String.format("Value[%s] not in array%s", value, Arrays.toString(strings)));
+
+    }
+
+    public static void validateStringNotIn(Object value, String[] strings) throws InvalidException {
+        if (value == null) {
+            return;
+        }
+        for (String s : strings) {
+            if (s.equals(value.toString())) {
+                throw new InvalidException(String.format("Value %s in array %s", value, Arrays.toString(strings)));
+            }
+        }
+    }
+
+    public static void validateIpv4(Object value) throws InvalidException {
+        if (value == null) {
+            throw new NullValueException();
+        }
+        String[] split = value.toString().split("[.]");
+        if (split.length != 4) {
+            throw new InvalidException(String.format("Value %s not match ipv4 format", value));
+        }
+        for (String s : split) {
+            int anInt = Integer.parseInt(s);
+            if (anInt > 255 || anInt < 0) {
+                throw new InvalidException(String.format("Value %s not match ipv4 format", value));
+            }
+        }
+    }
+
+    public static void validateIpv6(Object value) throws InvalidException {
+        if (value == null) {
+            throw new NullValueException();
+        }
+
+        String address = value.toString();
+        boolean result = false;
+        String regHex = "(\\p{XDigit}{1,4})";
+        //没有双冒号
+        String regIPv6Full = "^(" + regHex + ":){7}" + regHex + "$";
+        //双冒号在中间或者没有双冒号
+        String regIPv6AbWithColon = "^(" + regHex + "(:|::)){0,6}" + regHex + "$";
+        //双冒号开头
+        String regIPv6AbStartWithDoubleColon = "^(" + "::(" + regHex + ":){0,5}" + regHex + ")$";
+        String regIPv6 = "^(" + regIPv6Full + ")|("
+                + regIPv6AbStartWithDoubleColon + ")|(" + regIPv6AbWithColon + ")$";
+        //下面还要处理地址为::的情形和地址包含多于一个的::的情况（非法）
+        if (address.contains(":")) {
+            if (address.length() <= 39) {
+                String addressTemp = address;
+                int doubleColon = 0;
+                if (address.equals("::")) {
+                    return;
                 }
-                String[] split = value.toString().split("[.]");
-                if (split.length != 4) {
-                    return false;
+                while (addressTemp.contains("::")) {
+                    addressTemp = addressTemp.substring(addressTemp
+                            .indexOf("::") + 2, addressTemp.length());
+                    doubleColon++;
                 }
-                for (String s : split) {
-                    int anInt = Integer.parseInt(s);
-                    if (anInt > 255 || anInt < 0) {
-                        return false;
-                    }
+                if (doubleColon <= 1) {
+                    result = address.matches(regIPv6);
                 }
-                return true;
             }
-        };
+        }
+        if (!result) {
+            throw new InvalidException(String.format("Value %s not match ipv6 format", value));
+        }
     }
 
-    public static Validator<Ipv6> ipv6Validator() {
-        return new Validator<Ipv6>() {
-            @Override
-            public boolean validate(Ipv6 annotation, String field, Object value) throws InvalidException {
-                return false;
-            }
-        };
+    public static void validateMacAddress(Object value) throws InvalidException {
+        if (value == null) {
+            throw new NullValueException();
+        }
+
+        String trueMacAddress = "([A-Fa-f0-9]{2}-){5}[A-Fa-f0-9]{2}";
+        if (!value.toString().matches(trueMacAddress)) {
+            throw new InvalidException(String.format("Value %s not match mac address format", value));
+        }
     }
 
-    public static Validator<Mac> macValidator() {
-        return new Validator<Mac>() {
-            @Override
-            public boolean validate(Mac annotation, String field, Object value) throws InvalidException {
-                return false;
-            }
-        };
+    public static void validateMax(Object value, double max) throws InvalidException {
+        if (value == null) {
+            throw new NullValueException();
+        }
+        if (Double.parseDouble(value.toString()) > max) {
+            throw new InvalidException(String.format("Value %s more than %s", value, max));
+        }
     }
 
-    public static Validator<Max> maxValidator() {
-        return new Validator<Max>() {
-            @Override
-            public boolean validate(Max annotation, String field, Object value) throws InvalidException {
-                if (value == null) {
-                    return false;
-                }
-                return Long.parseLong(value.toString()) <= annotation.value();
-            }
-        };
+    public static void validateMin(Object value, double min) throws InvalidException {
+        if (value == null) {
+            throw new NullValueException();
+        }
+        if (Double.parseDouble(value.toString()) < min) {
+            throw new InvalidException(String.format("Value %s less than %s", value, min));
+        }
     }
 
-    public static Validator<Min> minValidator() {
-        return new Validator<Min>() {
-            @Override
-            public boolean validate(Min annotation, String field, Object value) throws InvalidException {
-                if (value == null) {
-                    return false;
-                }
-                return Long.parseLong(value.toString()) >= annotation.value();
-            }
-        };
+    public static void validateMaxMin(Object value, double min, double max) throws InvalidException {
+        if (value == null) {
+            throw new NullValueException();
+        }
+        Range<Double> doubleRange = new Range<>(min, max);
+        if (!doubleRange.over(Double.parseDouble(value.toString()))) {
+            throw new InvalidException(String.format("Value %s not in range [%s, %s]", value, min, max));
+        }
     }
 
-    public static Validator<NotEmpty> notEmptyValidator() {
-        return new Validator<NotEmpty>() {
-            @Override
-            public boolean validate(NotEmpty annotation, String field, Object value) throws InvalidException {
-                return false;
-            }
-        };
+    public static void validateEmpty(Object value) throws InvalidException {
+        if (value != null && value.toString().isEmpty()) {
+            throw new InvalidException(String.format("Value %s is not empty", value));
+        }
     }
 
-    public static Validator<NotNull> notNullValidator() {
-        return  new Validator<NotNull>() {
-            @Override
-            public boolean validate(NotNull annotation, String field, Object value) throws InvalidException {
-                if (value == null) {
-                    throw new InvalidException(String.format("Field[%s] is null", field));
-                }
-                return true;
-            }
-        };
+    public static void validateNotEmpty(Object value) throws InvalidException {
+        if (value != null && !value.toString().isEmpty()) {
+            throw new InvalidException(String.format("Value %s is empty", value));
+        }
     }
 
-    public static Validator<NotNullEmpty> notNullEmptyValidator() {
-        return new Validator<NotNullEmpty>() {
-            @Override
-            public boolean validate(NotNullEmpty annotation, String field, Object value) throws InvalidException {
-                return false;
-            }
-        };
+    public static void validateNull(Object value) throws InvalidException {
+        if (value != null) {
+            throw new InvalidException("Value is not null");
+        }
     }
 
-    public static Validator<Pattern> patternValidator() {
-        return new Validator<Pattern>() {
-            @Override
-            public boolean validate(Pattern annotation, String field, Object value) throws InvalidException {
-                return false;
-            }
-        };
+    public static void validateNotNull(Object value) throws InvalidException {
+        if (value == null) {
+            throw new InvalidException("Value is null");
+        }
     }
 
-    public static Validator<MaxMin> rangeValidator() {
-        return new Validator<MaxMin>() {
-            @Override
-            public boolean validate(MaxMin annotation, String field, Object value) throws InvalidException {
-                return false;
-            }
-        };
+    public static void validateRegexp(Object value, String regexp) throws InvalidException {
+        if (value == null) {
+            throw new NullValueException();
+        }
+        if (!value.toString().matches(regexp)) {
+            throw new InvalidException(String.format("Value %s not match expression %s", value, regexp));
+        }
     }
 
-    public static Validator<StringIn> stringInValidator() {
-        return new Validator<StringIn>() {
-            @Override
-            public boolean validate(StringIn annotation, String field, Object value) throws InvalidException {
-                if (value == null) {
-                    return false;
-                }
-                for (String s : annotation.value()) {
-                    if (s.equals(value.toString())) {
-                        return true;
-                    }
-                }
-                throw new InvalidException(String.format("Field[%s=%s] not in array%s", field, value, Arrays.toString(annotation.value())));
-            }
-        };
-    }
-
-    public static Validator<StringLength> stringLengthValidator() {
-        return new Validator<StringLength>() {
-            @Override
-            public boolean validate(StringLength annotation, String field, Object value) throws InvalidException {
-                if (value == null) {
-                    return true;
-                }
-                Range<Integer> range = new Range<>(annotation.min(), annotation.max());
-                if (!range.over(value.toString().length())) {
-                    throw new InvalidException(String.format("Field[%s] length=%s not in range%s", field, value.toString().length(), range.toRangeString()));
-                }
-                return true;
-            }
-        };
-    }
-
-    public static Validator<StringNotIn> stringNotInValidator() {
-        return new Validator<StringNotIn>() {
-            @Override
-            public boolean validate(StringNotIn annotation, String field, Object value) throws InvalidException {
-                if (value == null) {
-                    return true;
-                }
-                for (String s : annotation.value()) {
-                    if (s.equals(value.toString())) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        };
-    }
-
-    public static Validator<ValidateInside> validateInsideValidator() {
-        return new Validator<ValidateInside>() {
-            @Override
-            public boolean validate(ValidateInside annotation, String field, Object value) throws InvalidException {
-                return false;
-            }
-        };
+    public static void validateStringLength(Object value, int min, int max) throws InvalidException {
+        if (value == null) {
+            return;
+        }
+        Range<Integer> range = new Range<>(min, max);
+        if (!range.over(value.toString().length())) {
+            throw new InvalidException(String.format("Value[%s] length=%s not in range%s", value, value.toString().length(), range.toRangeString()));
+        }
     }
 }

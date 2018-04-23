@@ -15,9 +15,9 @@ public class ValidateService {
         for (Field field : attrNameFields.values()) {
             Annotation[] annotations = field.getAnnotations();
             for (Annotation annotation : annotations) {
-                Validator validator = ValidatorRegistry.get(annotation);
+                Validator validator = ValidatorRegistry.get(annotation.annotationType());
                 if (validator != null) {
-                    validator.validate(annotation, field.getName(), ReflectUtils.get(field.getName(), param));
+                    validator.validate(annotation, ReflectUtils.get(field.getName(), param));
                 }
             }
         }
