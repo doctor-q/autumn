@@ -7,10 +7,10 @@ import java.lang.annotation.Target;
 
 /**
  * Created by doctor on 2017/11/24.
- * POST 方法
+ * POST form-data方法
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PostJson {
+public @interface FormData {
     String value();
 }
