@@ -1,5 +1,6 @@
-package cc.doctor.framework.utils;
+package cc.doctor.framework.web.utils;
 
+import cc.doctor.framework.utils.ReflectUtils;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;

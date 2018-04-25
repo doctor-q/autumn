@@ -1,6 +1,6 @@
 package cc.doctor.framework.web.handler.resolver.modelview;
 
-import cc.doctor.framework.utils.VelocityUtils;
+import cc.doctor.framework.web.utils.VelocityUtils;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;

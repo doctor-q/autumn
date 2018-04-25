@@ -1,11 +1,13 @@
-package cc.doctor.framework.utils;
+package cc.doctor.framework.web.utils;
 
-import freemarker.core.ParseException;
-import freemarker.template.*;
+import freemarker.template.Configuration;
+import freemarker.template.DefaultObjectWrapper;
+import freemarker.template.Template;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.StringWriter;
 
 /**
  * Created by doctor on 2017/7/30.
