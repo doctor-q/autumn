@@ -1,0 +1,50 @@
+{
+  "appender": {
+    "console": {
+      "class": "cc.doctor.framework.log.appender.ConsoleAppender",
+      "encoder": {
+        "class": "cc.doctor.framework.log.appender.encode.EchoEncoder",
+        "pattern": "%t-%d{yyyy-MM-dd}-%m"
+      }
+    },
+    "file": {
+      "class": "cc.doctor.framework.log.appender.RollingAppender",
+      "encoder": {
+        "class": "cc.doctor.framework.log.appender.encode.PatternEncoder",
+        "pattern": "%t-%d{yyyy-MM-dd}-%m"
+      },
+      "fileName": "log.log"
+    },
+    "rolling": {
+      "class": "cc.doctor.framework.log.appender.RollingAppender",
+      "encoder": {
+        "class": "cc.doctor.framework.log.appender.encode.PatternEncoder",
+        "pattern": "%t-%d{yyyy-MM-dd}-%m"
+      },
+      "rollingPolicy": {
+        "class": "cc.doctor.framework.log.rolling.SizeRollingPolicy",
+        "filePattern": "%d{yyyy-MM-dd}.log"
+      }
+    }
+  },
+  "logger": {
+    "cc.doctor": {
+      "level": "warn",
+      "appender": [
+        "rolling"
+      ]
+    },
+    "file_logger": {
+      "level": "info",
+      "appender": [
+        "file"
+      ]
+    }
+  },
+  "root": {
+    "level": "debug",
+    "appender": [
+      "console"
+    ]
+  }
+}
