@@ -1,6 +1,5 @@
 package cc.doctor.framework.http.proxy;
 
-import cc.doctor.framework.utils.HttpUtils;
 import org.apache.http.Header;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -13,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HttpClientPool {
-    private static final Logger log = LoggerFactory.getLogger(HttpUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(HttpClientPool.class);
 
     private static PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager();
 
