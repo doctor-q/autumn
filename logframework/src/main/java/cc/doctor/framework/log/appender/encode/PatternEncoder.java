@@ -9,6 +9,15 @@ import java.util.List;
 public class PatternEncoder implements Encoder {
 
     private String pattern;
+
+    public String getPattern() {
+        return pattern;
+    }
+
+    public void setPattern(String pattern) {
+        this.pattern = pattern;
+    }
+
     private String format(Event event) {
         PatternParser singleton = PatternParser.getSingleton();
         List<Converter> converters = singleton.parse(pattern);

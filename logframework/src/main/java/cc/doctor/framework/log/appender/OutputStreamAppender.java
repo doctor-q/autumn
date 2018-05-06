@@ -24,6 +24,6 @@ public abstract class OutputStreamAppender implements Appender {
     }
 
     public void write(byte[] bytes) {
-
+        // override it
     }
 }

@@ -14,7 +14,7 @@ public class Logger implements org.slf4j.Logger {
     private String name;
     private boolean additive = true;
     private List<Appender> appenders = new LinkedList<>();
-    private Level level;
+    private Level level = Level.INFO;
     private Logger root;
 
     public void setName(String name) {
@@ -125,31 +125,31 @@ public class Logger implements org.slf4j.Logger {
 
     @Override
     public void debug(String msg) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.DEBUG).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(msg));
     }
 
     @Override
     public void debug(String format, Object arg) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.DEBUG).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(format).args(arg));
     }
 
     @Override
     public void debug(String format, Object arg1, Object arg2) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.DEBUG).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(format).args(arg1, arg2));
     }
 
     @Override
     public void debug(String format, Object... arguments) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.DEBUG).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(format).args(arguments));
     }
 
     @Override
     public void debug(String msg, Throwable t) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.DEBUG).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(msg).args(t));
     }
 
@@ -190,31 +190,31 @@ public class Logger implements org.slf4j.Logger {
 
     @Override
     public void info(String msg) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.INFO).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(msg));
     }
 
     @Override
     public void info(String format, Object arg) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.INFO).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(format).args(arg));
     }
 
     @Override
     public void info(String format, Object arg1, Object arg2) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.INFO).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(format).args(arg1, arg2));
     }
 
     @Override
     public void info(String format, Object... arguments) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.INFO).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(format).args(arguments));
     }
 
     @Override
     public void info(String msg, Throwable t) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.INFO).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(msg).args(t));
     }
 
@@ -255,31 +255,31 @@ public class Logger implements org.slf4j.Logger {
 
     @Override
     public void warn(String msg) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.WARN).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(msg));
     }
 
     @Override
     public void warn(String format, Object arg) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.WARN).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(format).args(arg));
     }
 
     @Override
     public void warn(String format, Object... arguments) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.WARN).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(format).args(arguments));
     }
 
     @Override
     public void warn(String format, Object arg1, Object arg2) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.WARN).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(format).args(arg1, arg2));
     }
 
     @Override
     public void warn(String msg, Throwable t) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.WARN).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(msg).args(t));
     }
 
@@ -320,31 +320,31 @@ public class Logger implements org.slf4j.Logger {
 
     @Override
     public void error(String msg) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.ERROR).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(msg));
     }
 
     @Override
     public void error(String format, Object arg) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.ERROR).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(format).args(arg));
     }
 
     @Override
     public void error(String format, Object arg1, Object arg2) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.ERROR).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(format).args(arg1, arg2));
     }
 
     @Override
     public void error(String format, Object... arguments) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.ERROR).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(format).args(arguments));
     }
 
     @Override
     public void error(String msg, Throwable t) {
-        append(new DefaultEvent().logTime(new Date()).logger(getName())
+        append(new DefaultEvent().level(Level.ERROR).logTime(new Date()).logger(getName())
                 .thread(Thread.currentThread().getName()).message(msg).args(t));
     }
 
@@ -384,12 +384,16 @@ public class Logger implements org.slf4j.Logger {
                 appender.append(event);
             }
         }
-        if (additive) {
+        if (additive && !isRoot()) {
             root.append(event);
         }
     }
 
     public void addAppender(Appender appender) {
         appenders.add(appender);
+    }
+
+    public boolean isRoot() {
+        return getName().equalsIgnoreCase(ROOT_LOGGER_NAME);
     }
 }

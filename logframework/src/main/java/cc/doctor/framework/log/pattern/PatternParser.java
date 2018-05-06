@@ -16,19 +16,14 @@ public class PatternParser {
 
     static {
         defaultConverterMap.put("d", DateConverter.class);
-        defaultConverterMap.put("date", DateConverter.class);
 
-        defaultConverterMap.put("level", LevelConverter.class);
         defaultConverterMap.put("le", LevelConverter.class);
 
         defaultConverterMap.put("t", ThreadConverter.class);
-        defaultConverterMap.put("thread", ThreadConverter.class);
 
         defaultConverterMap.put("lo", LoggerConverter.class);
-        defaultConverterMap.put("logger", LoggerConverter.class);
 
         defaultConverterMap.put("m", MessageConverter.class);
-        defaultConverterMap.put("msg", MessageConverter.class);
 
     }
 

@@ -3,12 +3,12 @@
     "console": {
       "class": "cc.doctor.framework.log.appender.ConsoleAppender",
       "encoder": {
-        "class": "cc.doctor.framework.log.appender.encode.EchoEncoder",
+        "class": "cc.doctor.framework.log.appender.encode.PatternEncoder",
         "pattern": "%t-%d{yyyy-MM-dd}-%m"
       }
     },
     "file": {
-      "class": "cc.doctor.framework.log.appender.RollingAppender",
+      "class": "cc.doctor.framework.log.appender.FileAppender",
       "encoder": {
         "class": "cc.doctor.framework.log.appender.encode.PatternEncoder",
         "pattern": "%t-%d{yyyy-MM-dd}-%m"

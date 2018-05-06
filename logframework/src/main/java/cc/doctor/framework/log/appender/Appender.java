@@ -5,6 +5,7 @@ import cc.doctor.framework.log.event.Event;
 
 public interface Appender {
     String getName();
+
     void append(Event event);
 
     void setEncoder(Encoder encoder);
