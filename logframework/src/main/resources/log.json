@@ -4,7 +4,7 @@
       "class": "cc.doctor.framework.log.appender.ConsoleAppender",
       "encoder": {
         "class": "cc.doctor.framework.log.appender.encode.PatternEncoder",
-        "pattern": "%t-%d{yyyy-MM-dd}-%m"
+        "pattern": "%lo[%t] %d{yyyy-MM-dd} -%le-%m"
       }
     },
     "file": {
@@ -23,27 +23,28 @@
       },
       "rollingPolicy": {
         "class": "cc.doctor.framework.log.rolling.SizeRollingPolicy",
-        "filePattern": "%d{yyyy-MM-dd}.log"
-      }
+      },
+      "filePattern": "%d{yyyy-MM-dd}.log"
     }
   },
   "logger": {
     "cc.doctor": {
-      "level": "warn",
-      "appender": [
+      "level": "WARN",
+      "appenderRefs": [
         "rolling"
       ]
     },
     "file_logger": {
-      "level": "info",
-      "appender": [
+      "level": "INFO",
+      "appenderRefs": [
         "file"
-      ]
+      ],
+      "additive": false
     }
   },
   "root": {
-    "level": "debug",
-    "appender": [
+    "level": "DEBUG",
+    "appenderRefs": [
       "console"
     ]
   }

@@ -13,7 +13,8 @@ import java.util.List;
 public class Logger implements org.slf4j.Logger {
     private String name;
     private boolean additive = true;
-    private List<Appender> appenders = new LinkedList<>();
+    private List<String> appenderRefs = new LinkedList<>();
+    private List<Appender> appenderList = new LinkedList<>();
     private Level level = Level.INFO;
     private Logger root;
 
@@ -29,12 +30,20 @@ public class Logger implements org.slf4j.Logger {
         this.additive = additive;
     }
 
-    public List<Appender> getAppenders() {
-        return appenders;
+    public List<String> getAppenderRefs() {
+        return appenderRefs;
     }
 
-    public void setAppenders(List<Appender> appenders) {
-        this.appenders = appenders;
+    public void setAppenderRefs(List<String> appenderRefs) {
+        this.appenderRefs = appenderRefs;
+    }
+
+    public List<Appender> getAppenderList() {
+        return appenderList;
+    }
+
+    public void setAppenderList(List<Appender> appenderList) {
+        this.appenderList = appenderList;
     }
 
     public Level getLevel() {
@@ -379,7 +388,8 @@ public class Logger implements org.slf4j.Logger {
     }
 
     private void append(Event event) {
-        for (Appender appender : appenders) {
+        event.prepareLog();
+        for (Appender appender : appenderList) {
             if (event.getLevel().above(this.level)) {
                 appender.append(event);
             }
@@ -390,7 +400,7 @@ public class Logger implements org.slf4j.Logger {
     }
 
     public void addAppender(Appender appender) {
-        appenders.add(appender);
+        appenderList.add(appender);
     }
 
     public boolean isRoot() {

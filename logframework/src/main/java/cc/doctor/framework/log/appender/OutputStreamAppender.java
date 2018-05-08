@@ -1,10 +1,12 @@
 package cc.doctor.framework.log.appender;
 
 import cc.doctor.framework.log.appender.encode.Encoder;
+import com.alibaba.fastjson.annotation.JSONField;
 
 public abstract class OutputStreamAppender implements Appender {
     private String name;
-    protected Encoder encoder;
+    @JSONField(deserialize=false)
+    protected transient Encoder encoder;
 
     @Override
     public String getName() {
@@ -21,9 +23,5 @@ public abstract class OutputStreamAppender implements Appender {
 
     public void setEncoder(Encoder encoder) {
         this.encoder = encoder;
-    }
-
-    public void write(byte[] bytes) {
-        // override it
     }
 }

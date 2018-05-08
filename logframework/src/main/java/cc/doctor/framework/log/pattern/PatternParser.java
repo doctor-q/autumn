@@ -1,13 +1,13 @@
 package cc.doctor.framework.log.pattern;
 
+import cc.doctor.framework.log.event.DefaultEvent;
+import cc.doctor.framework.log.event.Level;
 import cc.doctor.framework.log.pattern.converter.*;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PatternParser {
     private static PatternParser INSTANCE;
@@ -46,18 +46,21 @@ public class PatternParser {
     /**
      * 将日志格式转换成converter列表
      *
-     * @param pattern 日志格式，形如%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n
+     * @param pattern 日志格式，形如%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5le %lo{50} - %msg%n
      * @return converter列表
      */
     public List<Converter> parse(String pattern) {
         List<Converter> converters = new LinkedList<>();
         Converter currentConverter = null;
+        // 普通字符串,EchoConverter
         StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < pattern.length(); i++) {
-            char c = pattern.charAt(i);
+        for (AtomicInteger i = new AtomicInteger(0); i.get() < pattern.length(); i.incrementAndGet()) {
+            char c = pattern.charAt(i.get());
             if (c == '%') {
                 if (stringBuilder.length() > 0) {
                     EchoConverter echoConverter = new EchoConverter();
+                    echoConverter.setFormat(stringBuilder.toString());
+                    stringBuilder = new StringBuilder();
                     converters.add(echoConverter);
                 }
                 String format = getFormat(i, pattern);
@@ -66,6 +69,7 @@ public class PatternParser {
                     Constructor<? extends Converter> constructor = converterClass.getConstructor();
                     Converter converter = constructor.newInstance();
                     converter.setFormat(format);
+                    converters.add(converter);
                     currentConverter = converter;
                 } catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
 
@@ -83,10 +87,11 @@ public class PatternParser {
         return converters;
     }
 
-    private String getArg(int i, String pattern) {
+    private String getArg(AtomicInteger i, String pattern) {
+        i.getAndIncrement();
         StringBuilder stringBuilder = new StringBuilder();
-        for (; i < pattern.length(); i++) {
-            char c = pattern.charAt(i);
+        for (; i.get() < pattern.length(); i.getAndIncrement()) {
+            char c = pattern.charAt(i.get());
             if (c == '}') {
                 return stringBuilder.toString();
             } else {
@@ -96,15 +101,26 @@ public class PatternParser {
         throw new ConvertException();
     }
 
-    private String getFormat(int i, String pattern) {
+    private String getFormat(AtomicInteger i, String pattern) {
+        i.getAndIncrement();
         StringBuilder stringBuilder = new StringBuilder();
-        for (; i < pattern.length(); i++) {
-            char c = pattern.charAt(i);
+        for (; i.get() < pattern.length(); i.getAndIncrement()) {
+            char c = pattern.charAt(i.get());
             stringBuilder.append(c);
             if (converterMap.containsKey(stringBuilder.toString())) {
                 return stringBuilder.toString();
             }
         }
         throw new ConvertException();
+    }
+
+    public static void main(String[] args) {
+        List<Converter> converters = PatternParser.getSingleton().parse("%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %le %lo{50} - %m");
+        DefaultEvent defaultEvent = new DefaultEvent().level(Level.INFO).logger("loooo")
+                .logTime(new Date()).message("info[{}]").thread(Thread.currentThread().getName()).args("a");
+        defaultEvent.prepareLog();
+        for (Converter converter : converters) {
+            System.out.print(converter.convert(defaultEvent));
+        }
     }
 }

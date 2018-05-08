@@ -9,6 +9,6 @@ public enum Level {
     }
 
     public boolean above(Level level) {
-        return code < level.code;
+        return code <= level.code;
     }
 }

@@ -1,5 +1,8 @@
 package cc.doctor.framework.log.event;
 
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
+
 import java.util.Date;
 
 public class DefaultEvent implements Event {
@@ -61,6 +64,12 @@ public class DefaultEvent implements Event {
 
     public String getLogger() {
         return logger;
+    }
+
+    @Override
+    public void prepareLog() {
+        FormattingTuple formattingTuple = MessageFormatter.arrayFormat(message, args);
+        formatMessage = formattingTuple.getMessage();
     }
 
     public void setLogger(String logger) {

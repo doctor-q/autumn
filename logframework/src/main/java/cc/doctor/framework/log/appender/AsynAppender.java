@@ -30,6 +30,11 @@ public class AsynAppender implements Appender {
         appender.setEncoder(encoder);
     }
 
+    @Override
+    public void setName(String name) {
+
+    }
+
     class EventConsumer implements Runnable {
 
         @Override

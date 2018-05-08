@@ -9,4 +9,6 @@ public interface Appender {
     void append(Event event);
 
     void setEncoder(Encoder encoder);
+
+    void setName(String name);
 }

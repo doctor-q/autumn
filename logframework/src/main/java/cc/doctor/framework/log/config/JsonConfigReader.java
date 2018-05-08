@@ -1,6 +1,7 @@
 package cc.doctor.framework.log.config;
 
 import cc.doctor.framework.log.appender.Appender;
+import cc.doctor.framework.log.appender.FileAppender;
 import cc.doctor.framework.log.appender.RollingAppender;
 import cc.doctor.framework.log.appender.encode.Encoder;
 import cc.doctor.framework.log.logger.Logger;
@@ -43,7 +44,7 @@ public class JsonConfigReader implements ConfigReader {
             URL resource = JsonConfigReader.class.getClassLoader().getResource(LOG_CONFIG_JSON);
             byte[] bytes = Files.readAllBytes(Paths.get(resource.toURI()));
             config = JSONObject.parseObject(new String(bytes));
-            loaderAppenders();
+            loaderAppender();
             loaderRoot();
             loaderLoggers();
         } catch (IOException | URISyntaxException e) {
@@ -51,20 +52,22 @@ public class JsonConfigReader implements ConfigReader {
         }
     }
 
-    public void loaderAppenders() {
+    public void loaderAppender() {
         JSONObject appenderObjectMap = config.getJSONObject("appender");
         for (Map.Entry<String, Object> entry : appenderObjectMap.entrySet()) {
             String appenderName = entry.getKey();
-            JSONObject value = (JSONObject) entry.getValue();
-            String appenderClass = value.getString(CLASS_FIELD);
-            Appender appender = construct(appenderClass);
-            JSONObject encoderObject = value.getJSONObject("encoder");
+            JSONObject appenderObject = (JSONObject) entry.getValue();
+            Appender appender = getAppender(appenderName, appenderObject);
+            JSONObject encoderObject = appenderObject.getJSONObject("encoder");
             Encoder encoder = getEncoder(encoderObject);
             appender.setEncoder(encoder);
-            if (appenderClass.equals(RollingAppender.class.getName())) {
-                JSONObject rollingPolicyObject = value.getJSONObject("rollingPolicy");
+            if (appender instanceof RollingAppender) {
+                JSONObject rollingPolicyObject = appenderObject.getJSONObject("rollingPolicy");
                 RollingPolicy rollingPolicy = getRollingPolicy(rollingPolicyObject);
                 ((RollingAppender) appender).setRollingPolicy(rollingPolicy);
+            } else if (appender instanceof FileAppender) {
+                String fileName = appenderObject.getString("fileName");
+                ((FileAppender)appender).setFileName(fileName);
             }
             this.appenderMap.put(appenderName, appender);
         }
@@ -84,15 +87,16 @@ public class JsonConfigReader implements ConfigReader {
     }
 
     private Logger getLogger(String name, JSONObject loggerObject, boolean isRoot) {
-        Logger logger = new Logger();
+        Logger logger = loggerObject.toJavaObject(Logger.class);
         logger.setName(name);
         if (!isRoot) {
             logger.setRoot(root);
         }
-        List appenderList = loggerObject.getObject("appender", List.class);
-        for (Object appName : appenderList) {
-            Appender appender = appenderMap.get(appName.toString());
-            logger.addAppender(appender);
+        for (String appName : logger.getAppenderRefs()) {
+            Appender appender = appenderMap.get(appName);
+            if (appender != null) {
+                logger.addAppender(appender);
+            }
         }
         return logger;
     }
@@ -117,11 +121,13 @@ public class JsonConfigReader implements ConfigReader {
         }
     }
 
-    private <T> T construct(String className) {
+    private Appender getAppender(String name, JSONObject appenderObject) {
+        String appenderClass = appenderObject.getString(CLASS_FIELD);
         try {
-            Class<?> aClass = Class.forName(className);
-            Constructor<T> constructor = (Constructor<T>) aClass.getConstructor();
-            return constructor.newInstance();
+            Class<? extends Appender> aClass = (Class<? extends Appender>) Class.forName(appenderClass);
+            Appender appender = appenderObject.toJavaObject(aClass);
+            appender.setName(name);
+            return appender;
         } catch (Exception e) {
             throw new ConfigException();
         }
