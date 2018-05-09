@@ -7,7 +7,10 @@ import java.util.Map;
 
 public interface ConfigReader {
     void load();
+
     Map<String, Appender> getAppenderMap();
+
     Map<String, Logger> getLoggerMap();
+
     Logger getRoot();
 }

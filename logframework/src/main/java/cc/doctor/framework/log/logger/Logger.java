@@ -74,27 +74,32 @@ public class Logger implements org.slf4j.Logger {
 
     @Override
     public void trace(String msg) {
-
+        append(new DefaultEvent().level(Level.TRACE).logTime(new Date()).logger(getName())
+                .thread(Thread.currentThread().getName()).message(msg));
     }
 
     @Override
     public void trace(String format, Object arg) {
-
+        append(new DefaultEvent().level(Level.TRACE).logTime(new Date()).logger(getName())
+                .thread(Thread.currentThread().getName()).message(format).args(arg));
     }
 
     @Override
     public void trace(String format, Object arg1, Object arg2) {
-
+        append(new DefaultEvent().level(Level.TRACE).logTime(new Date()).logger(getName())
+                .thread(Thread.currentThread().getName()).message(format).args(arg1, arg2));
     }
 
     @Override
     public void trace(String format, Object... arguments) {
-
+        append(new DefaultEvent().level(Level.TRACE).logTime(new Date()).logger(getName())
+                .thread(Thread.currentThread().getName()).message(format).args(arguments));
     }
 
     @Override
     public void trace(String msg, Throwable t) {
-
+        append(new DefaultEvent().level(Level.TRACE).logTime(new Date()).logger(getName())
+                .thread(Thread.currentThread().getName()).message(msg).args(t));
     }
 
     @Override

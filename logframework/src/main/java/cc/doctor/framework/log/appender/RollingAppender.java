@@ -5,7 +5,7 @@ import cc.doctor.framework.log.rolling.RollingPolicy;
 import com.alibaba.fastjson.annotation.JSONField;
 
 public class RollingAppender extends OutputStreamAppender {
-    @JSONField(deserialize=false)
+    @JSONField(deserialize = false)
     private transient RollingPolicy rollingPolicy;
 
     @Override

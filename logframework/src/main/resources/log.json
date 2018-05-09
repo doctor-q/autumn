@@ -22,7 +22,7 @@
         "pattern": "%t-%d{yyyy-MM-dd}-%m"
       },
       "rollingPolicy": {
-        "class": "cc.doctor.framework.log.rolling.SizeRollingPolicy",
+        "class": "cc.doctor.framework.log.rolling.SizeRollingPolicy"
       },
       "filePattern": "%d{yyyy-MM-dd}.log"
     }

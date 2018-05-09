@@ -5,7 +5,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 
 public abstract class OutputStreamAppender implements Appender {
     private String name;
-    @JSONField(deserialize=false)
+    @JSONField(deserialize = false)
     protected transient Encoder encoder;
 
     @Override

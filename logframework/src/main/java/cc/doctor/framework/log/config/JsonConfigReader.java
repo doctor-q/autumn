@@ -9,13 +9,11 @@ import cc.doctor.framework.log.rolling.RollingPolicy;
 import com.alibaba.fastjson.JSONObject;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class JsonConfigReader implements ConfigReader {
@@ -67,7 +65,7 @@ public class JsonConfigReader implements ConfigReader {
                 ((RollingAppender) appender).setRollingPolicy(rollingPolicy);
             } else if (appender instanceof FileAppender) {
                 String fileName = appenderObject.getString("fileName");
-                ((FileAppender)appender).setFileName(fileName);
+                ((FileAppender) appender).setFileName(fileName);
             }
             this.appenderMap.put(appenderName, appender);
         }
