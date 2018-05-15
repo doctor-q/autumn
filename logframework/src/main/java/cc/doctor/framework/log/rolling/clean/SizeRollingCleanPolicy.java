@@ -7,8 +7,8 @@ import java.util.*;
 /**
  * 基于目录大小的文件清除策略
  */
-public class SizeRollingCleanPolicy extends ThresoldRollingCleanPolicy {
-    private long maxSize = 10 * 1024 * 1024 * 1024L;
+public class SizeRollingCleanPolicy extends ThresholdRollingCleanPolicy {
+    private long maxSize = 10 * 1024 * 1024 * 1024L;    // 10G
 
     public long getMaxSize() {
         return maxSize;
@@ -37,10 +37,11 @@ public class SizeRollingCleanPolicy extends ThresoldRollingCleanPolicy {
             long cleanTo = (long) (totalSize * (1 - cleanRate));
             List<File> deleteFiles = new LinkedList<>();
             for (Map.Entry<File, Long> entry : fileSize.entrySet()) {
-                if (totalSize > cleanTo) {
-                    deleteFiles.add(entry.getKey());
-                    totalSize -= entry.getValue();
+                if (totalSize < cleanTo) {
+                    break;
                 }
+                deleteFiles.add(entry.getKey());
+                totalSize -= entry.getValue();
             }
             for (File deleteFile : deleteFiles) {
                 deleteFile.delete();

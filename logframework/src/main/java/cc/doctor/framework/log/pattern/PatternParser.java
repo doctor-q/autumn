@@ -84,6 +84,11 @@ public class PatternParser {
                 stringBuilder.append(c);
             }
         }
+        if (stringBuilder.length() > 0) {
+            EchoConverter echoConverter = new EchoConverter();
+            echoConverter.setFormat(stringBuilder.toString());
+            converters.add(echoConverter);
+        }
         return converters;
     }
 

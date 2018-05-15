@@ -15,7 +15,7 @@ public class FileAppender extends OutputStreamAppender {
     public void append(Event event) {
         if (fileOutputStream == null) {
             try {
-                fileOutputStream = new FileOutputStream(fileName);
+                fileOutputStream = new FileOutputStream(fileName, true);
             } catch (FileNotFoundException e) {
                 throw new ConfigException();
             }

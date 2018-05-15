@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * 基于文件数量的清除策略
  */
-public class NumRollingCleanPolicy extends ThresoldRollingCleanPolicy {
+public class NumRollingCleanPolicy extends ThresholdRollingCleanPolicy {
     // 最大存在的文件数量
     private int maxFileNum = 1000;
 

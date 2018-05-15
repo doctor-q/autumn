@@ -10,8 +10,11 @@ public class LoggerTest {
 
     @Test
     public void testLogger() {
-        log(log);
-        log(fileLogger);
+        for (int i = 0; i < 12; i++) {
+            log(log);
+//            log(fileLogger);
+        }
+
     }
 
     private void log(Logger log) {

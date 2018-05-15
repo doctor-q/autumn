@@ -5,6 +5,8 @@ import cc.doctor.framework.log.event.Event;
 import cc.doctor.framework.log.pattern.PatternParser;
 import cc.doctor.framework.log.pattern.converter.Converter;
 import cc.doctor.framework.log.rolling.clean.RollingCleanPolicy;
+import cc.doctor.framework.log.rolling.clean.SizeRollingCleanPolicy;
+import com.alibaba.fastjson.annotation.JSONField;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,7 +14,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 public abstract class RollingPolicy {
@@ -21,11 +25,14 @@ public abstract class RollingPolicy {
     protected String currentFileName;
     protected File currentFile;
     protected FileOutputStream current;
-    protected String filePattern;
+    private static final String DEFAULT_FILE_PATTERN = "/tmp/log/%d{yyyyMMddHHmmssSSS}-rolling.log";
+    protected String filePattern = DEFAULT_FILE_PATTERN;
     // 日志清除策略，可以同时采用多种清除策略
-    protected List<RollingCleanPolicy> rollingCleanPolicies;
+    @JSONField(deserialize = false)
+    protected List<? extends RollingCleanPolicy> rollingCleanPolicies;
 
     public void load() {
+        files = new LinkedList<>();
         int i = filePattern.lastIndexOf('/');
         String directory = filePattern.substring(0, i);
         final File dir = new File(directory);
@@ -54,11 +61,37 @@ public abstract class RollingPolicy {
             currentFile = lastModifyFile;
             currentFileName = currentFile.getAbsolutePath();
             try {
-                current = new FileOutputStream(currentFile);
+                current = new FileOutputStream(currentFile, true);
             } catch (FileNotFoundException e) {
 
             }
+        } else {
+            newFile();
         }
+        startLogClean();
+        addShutdownHook();
+    }
+
+    private void addShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (current != null) {
+                        current.flush();
+                        current.close();
+                    }
+                } catch (IOException e) {
+
+                }
+            }
+        }));
+    }
+
+    private void startLogClean() {
+        Thread thread = new Thread(new RollingCleanThread());
+        thread.setDaemon(true);
+        thread.start();
     }
 
     public String getFilePattern() {
@@ -77,11 +110,11 @@ public abstract class RollingPolicy {
         return currentFileName;
     }
 
-    public List<RollingCleanPolicy> getRollingCleanPolicies() {
+    public List<? extends RollingCleanPolicy> getRollingCleanPolicies() {
         return rollingCleanPolicies;
     }
 
-    public void setRollingCleanPolicies(List<RollingCleanPolicy> rollingCleanPolicies) {
+    public void setRollingCleanPolicies(List<? extends RollingCleanPolicy> rollingCleanPolicies) {
         this.rollingCleanPolicies = rollingCleanPolicies;
     }
 
@@ -98,21 +131,37 @@ public abstract class RollingPolicy {
         currentFile = new File(currentFileName);
         files.add(currentFile);
         try {
-            current.flush();
-            current.close();
-            current = new FileOutputStream(currentFile);
+            if (current != null) {
+                current.flush();
+                current.close();
+            }
+            current = new FileOutputStream(currentFile, true);
         } catch (IOException e) {
 
         }
+    }
+
+    // 默认按大小轮转日志，默认按大小清除策略
+    public static RollingPolicy defaultRollingPolicy() {
+        SizeRollingPolicy sizeRollingPolicy = new SizeRollingPolicy();
+        List<SizeRollingCleanPolicy> rollingCleanPolicies = Collections.singletonList(new SizeRollingCleanPolicy());
+        sizeRollingPolicy.setRollingCleanPolicies(rollingCleanPolicies);
+        return sizeRollingPolicy;
+    }
+
+    public FileOutputStream getCurrent() {
+        return current;
     }
 
     class RollingCleanThread implements Runnable {
 
         @Override
         public void run() {
-            if (rollingCleanPolicies != null && rollingCleanPolicies.size() > 0) {
-                for (RollingCleanPolicy rollingCleanPolicy : rollingCleanPolicies) {
-                    rollingCleanPolicy.clean(files);
+            while (true) {
+                if (rollingCleanPolicies != null && !rollingCleanPolicies.isEmpty()) {
+                    for (RollingCleanPolicy rollingCleanPolicy : rollingCleanPolicies) {
+                        rollingCleanPolicy.clean(files);
+                    }
                 }
             }
         }

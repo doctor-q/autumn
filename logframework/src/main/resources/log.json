@@ -13,7 +13,8 @@
         "class": "cc.doctor.framework.log.appender.encode.PatternEncoder",
         "pattern": "%t-%d{yyyy-MM-dd}-%m"
       },
-      "fileName": "log.log"
+      "fileName": "log.log",
+      "async": true
     },
     "rolling": {
       "class": "cc.doctor.framework.log.appender.RollingAppender",
@@ -22,7 +23,14 @@
         "pattern": "%t-%d{yyyy-MM-dd}-%m"
       },
       "rollingPolicy": {
-        "class": "cc.doctor.framework.log.rolling.SizeRollingPolicy"
+        "class": "cc.doctor.framework.log.rolling.SizeRollingPolicy",
+        "size": 100,
+        "rollingCleanPolicies": [
+          {
+            "class": "cc.doctor.framework.log.rolling.clean.SizeRollingCleanPolicy",
+            "maxSize": 1000
+          }
+        ]
       },
       "filePattern": "%d{yyyy-MM-dd}.log"
     }

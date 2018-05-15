@@ -1,11 +1,14 @@
 package cc.doctor.framework.log.config;
 
 import cc.doctor.framework.log.appender.Appender;
+import cc.doctor.framework.log.appender.AsyncAppender;
 import cc.doctor.framework.log.appender.FileAppender;
 import cc.doctor.framework.log.appender.RollingAppender;
 import cc.doctor.framework.log.appender.encode.Encoder;
 import cc.doctor.framework.log.logger.Logger;
 import cc.doctor.framework.log.rolling.RollingPolicy;
+import cc.doctor.framework.log.rolling.clean.RollingCleanPolicy;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import java.io.IOException;
@@ -14,6 +17,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class JsonConfigReader implements ConfigReader {
@@ -62,6 +67,7 @@ public class JsonConfigReader implements ConfigReader {
             if (appender instanceof RollingAppender) {
                 JSONObject rollingPolicyObject = appenderObject.getJSONObject("rollingPolicy");
                 RollingPolicy rollingPolicy = getRollingPolicy(rollingPolicyObject);
+                rollingPolicy.load();
                 ((RollingAppender) appender).setRollingPolicy(rollingPolicy);
             } else if (appender instanceof FileAppender) {
                 String fileName = appenderObject.getString("fileName");
@@ -112,8 +118,27 @@ public class JsonConfigReader implements ConfigReader {
     private RollingPolicy getRollingPolicy(JSONObject rollingPolicyObject) {
         String encoderClass = rollingPolicyObject.getString(CLASS_FIELD);
         try {
-            Class<? extends RollingPolicy> rollingPolicy = (Class<? extends RollingPolicy>) Class.forName(encoderClass);
-            return rollingPolicyObject.toJavaObject(rollingPolicy);
+            Class<? extends RollingPolicy> rollingPolicyClass = (Class<? extends RollingPolicy>) Class.forName(encoderClass);
+            List<RollingCleanPolicy> rollingCleanPolicies = new LinkedList<>();
+            JSONArray rollingCleanPoliciesArray = rollingPolicyObject.getJSONArray("rollingCleanPolicies");
+            if (rollingCleanPoliciesArray != null) {
+                for (Object o : rollingCleanPoliciesArray) {
+                    rollingCleanPolicies.add(getRollingCleanPolicy((JSONObject)o));
+                }
+            }
+            RollingPolicy rollingPolicy = rollingPolicyObject.toJavaObject(rollingPolicyClass);
+            rollingPolicy.setRollingCleanPolicies(rollingCleanPolicies);
+            return rollingPolicy;
+        } catch (Exception e) {
+            return RollingPolicy.defaultRollingPolicy();
+        }
+    }
+
+    private RollingCleanPolicy getRollingCleanPolicy(JSONObject jsonObject) {
+        String encoderClass = jsonObject.getString(CLASS_FIELD);
+        try {
+            Class<? extends RollingCleanPolicy> rollingCleanPolicy = (Class<? extends RollingCleanPolicy>) Class.forName(encoderClass);
+            return jsonObject.toJavaObject(rollingCleanPolicy);
         } catch (Exception e) {
             return null;
         }
@@ -125,6 +150,17 @@ public class JsonConfigReader implements ConfigReader {
             Class<? extends Appender> aClass = (Class<? extends Appender>) Class.forName(appenderClass);
             Appender appender = appenderObject.toJavaObject(aClass);
             appender.setName(name);
+            Boolean async = appenderObject.getBoolean("async");
+            if (async != null && async) {
+                AsyncAppender asyncAppender = new AsyncAppender();
+                asyncAppender.setName(name);
+                asyncAppender.setAppender(appender);
+                Integer queueSize = appenderObject.getInteger("queueSize");
+                if (queueSize != null) {
+                    asyncAppender.setQueueSize(queueSize);
+                }
+                return asyncAppender;
+            }
             return appender;
         } catch (Exception e) {
             throw new ConfigException();
