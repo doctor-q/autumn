@@ -8,11 +8,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Created by doctor on 2017/7/19.
- * 封装参数Parameter到参数或字段
+ * 封装属性Attribute到参数或字段
  */
 @Target({ElementType.PARAMETER, ElementType.FIELD})
 @Retention(RUNTIME)
-public @interface Param {
+public @interface Attribute {
     /**
      * 别名
      */

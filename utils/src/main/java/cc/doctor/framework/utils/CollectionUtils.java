@@ -1,9 +1,9 @@
 package cc.doctor.framework.utils;
 
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import cc.doctor.framework.entity.Function;
+
+import java.util.*;
 
 /**
  * Created by doctor on 2017/7/12.
@@ -15,6 +15,14 @@ public class CollectionUtils {
             tSet.add(t);
         }
         return tSet;
+    }
+
+    public static <F,T>List<T> transform(List<F> froms, Function<F,T> function) {
+        List<T> tList = new LinkedList<>();
+        for (F from : froms) {
+            tList.add(function.transform(from));
+        }
+        return tList;
     }
 
     public abstract static class JoinerFilter<F, T> {

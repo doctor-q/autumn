@@ -61,4 +61,13 @@ public class Container {
         }
         return component;
     }
+
+    public <T> T newComponent(Class<T> type) {
+        try {
+            return type.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            log.error("", e);
+        }
+        return null;
+    }
 }

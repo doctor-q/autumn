@@ -1,15 +1,15 @@
 package cc.doctor.framework.web.handler.parser;
 
+import cc.doctor.framework.utils.Container;
 import cc.doctor.framework.utils.ReflectUtils;
 import cc.doctor.framework.utils.SerializeUtils;
 import cc.doctor.framework.web.handler.in.RequestAnnotationHandler;
 import cc.doctor.framework.web.handler.in.RequestHandlerFactory;
-import cc.doctor.framework.web.servlet.meta.HttpMetaData;
-import cc.doctor.framework.web.servlet.meta.HttpMetaParameters;
+import cc.doctor.framework.web.handler.invoke.Parameter;
+import cc.doctor.framework.web.servlet.meta.HttpMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.http.HttpServletRequest;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -22,66 +22,88 @@ import java.util.Set;
  * Created by doctor on 2017/7/21.
  */
 public enum ParameterType {
-    HTTP_META_DATA(HttpMetaData.class, null) {
+    HTTP_META_PARAMETERS(HttpMetadata.class, null) {
         @Override
-        public Object transfer(Class<?> paramType, Annotation[] paramAnnotations, HttpMetaData httpMetaData, HttpMetaParameters httpMetaParameters) {
-            return httpMetaData;
-        }
-    },
-    HTTP_META_PARAMETERS(HttpMetaParameters.class, null) {
-        @Override
-        public Object transfer(Class<?> paramType, Annotation[] paramAnnotations, HttpMetaData httpMetaData, HttpMetaParameters httpMetaParameters) {
-            return httpMetaParameters;
+        public void setParameter(Parameter parameter, HttpMetadata httpMetadata) {
+            parameter.setValue(httpMetadata);
         }
     },
     UNPACK(Unpack.class, null) {
         @Override
-        public Object transfer(Class<?> paramType, Annotation[] paramAnnotations, HttpMetaData httpMetaData, HttpMetaParameters httpMetaParameters) {
+        public void setParameter(Parameter parameter, HttpMetadata httpMetadata) {
             try {
                 // unpack can do a before after hook
                 Object instance = paramType.newInstance();
-                ((Unpack)instance).beforeUnpack(httpMetaData, httpMetaParameters);
-                fillObject(httpMetaParameters, instance);
-                ((Unpack)instance).afterUnpack(httpMetaData, httpMetaParameters);
-                return instance;
+                parameter.setValue(instance);
+                ((Unpack) instance).beforeUnpack(httpMetadata);
+                fillObject(httpMetadata, parameter);
+                ((Unpack) instance).afterUnpack(httpMetadata);
             } catch (InstantiationException | IllegalAccessException e) {
                 log.error("", e);
             }
-            return null;
         }
     },
     JSON(null, JsonParam.class) {
         @Override
-        public Object transfer(Class<?> paramType, Annotation[] paramAnnotations, HttpMetaData httpMetaData, HttpMetaParameters httpMetaParameters) {
-            return SerializeUtils.jsonToObject(httpMetaParameters.getJson(), paramType);
+        public void setParameter(Parameter parameter, HttpMetadata httpMetadata) {
+            Object object = SerializeUtils.jsonToObject(httpMetadata.getJson(), paramType);
+            parameter.setValue(object);
         }
     },
     FORM(null, Form.class) {
         @Override
-        public Object transfer(Class<?> paramType, Annotation[] paramAnnotations, HttpMetaData httpMetaData, HttpMetaParameters httpMetaParameters) {
-            Form form = (Form) getAnnotation(paramAnnotations, Form.class);
+        public void setParameter(Parameter parameter, HttpMetadata httpMetadata) {
+            Form form = (Form) getAnnotation(parameter.getAnnotations(), Form.class);
             if (form != null) {
-                try {
-                    Object instance = paramType.newInstance();
-                    fillObject(httpMetaParameters, instance);
-                    return instance;
-                } catch (InstantiationException | IllegalAccessException e) {
-                    log.error("", e);
-                }
+                fillObject(httpMetadata, parameter);
             }
-            return null;
         }
     },
     PARAM(null, Param.class) {
         @Override
-        public Object transfer(Class<?> paramType, Annotation[] paramAnnotations, HttpMetaData httpMetaData, HttpMetaParameters httpMetaParameters) {
-            Param param = (Param) getAnnotation(paramAnnotations, Param.class);
+        public void setParameter(Parameter parameter, HttpMetadata httpMetadata) {
+            Param param = (Param) getAnnotation(parameter.getAnnotations(), Param.class);
             String name = param.value();
-            String value = httpMetaParameters.getParamString(name);
+            String value = httpMetadata.getParam(name);
             if (value == null) {
-                return null;
+                return;
             }
-            return parseParam(value, paramType);
+            parameter.setValue(parseParam(value, parameter.getType()));
+        }
+    },
+    ATTRIBUTE(null, Attribute.class) {
+        @Override
+        public void setParameter(Parameter parameter, HttpMetadata httpMetadata) {
+            Attribute param = (Attribute) getAnnotation(parameter.getAnnotations(), Attribute.class);
+            String name = param.value();
+            String value = httpMetadata.getAttribute(name);
+            if (value == null) {
+                return;
+            }
+            parameter.setValue(parseParam(value, parameter.getType()));
+        }
+    },
+    COOKIE(null, Cookie.class) {
+        @Override
+        public void setParameter(Parameter parameter, HttpMetadata httpMetadata) {
+            Cookie param = (Cookie) getAnnotation(parameter.getAnnotations(), Cookie.class);
+            String name = param.value();
+            String value = httpMetadata.getCookie(name);
+            if (value == null) {
+                return;
+            }
+            parameter.setValue(parseParam(value, parameter.getType()));
+        }
+    }, HEADER(null, Header.class) {
+        @Override
+        public void setParameter(Parameter parameter, HttpMetadata httpMetadata) {
+            Header param = (Header) getAnnotation(parameter.getAnnotations(), Header.class);
+            String name = param.value();
+            String value = httpMetadata.getHeader(name);
+            if (value == null) {
+                return;
+            }
+            parameter.setValue(parseParam(value, parameter.getType()));
         }
     };
     private static final Logger log = LoggerFactory.getLogger(ReflectUtils.class);
@@ -111,8 +133,8 @@ public enum ParameterType {
         return null;
     }
 
-    public Object transfer(Class<?> paramType, Annotation[] paramAnnotations, HttpMetaData httpMetaData, HttpMetaParameters httpMetaParameters) {
-        return null;
+
+    public void setParameter(Parameter parameter, HttpMetadata httpMetadata) {
     }
 
     public Annotation getAnnotation(Annotation[] annotations, Class annotationClass) {
@@ -124,23 +146,33 @@ public enum ParameterType {
         return null;
     }
 
-    public void fillObject(HttpMetaParameters httpMetaParameters, Object object) {
-        Map<String, Field> objectAttrNameFields = ReflectUtils.getObjectAttrNameFields(object.getClass());
-        for (String param : objectAttrNameFields.keySet()) {
-            Field field = objectAttrNameFields.get(param);
-            String parameter = httpMetaParameters.getParamString(param);
+    public void fillObject(HttpMetadata httpMetaParameters, Parameter parameter) {
+        if (parameter.getValue() != null) {
+            parameter.setValue(Container.container.newComponent(parameter.getType()));
+        }
+        Map<String, Field> objectAttrNameFields = ReflectUtils.getObjectAttrNameFields(parameter.getType());
+        for (String name : objectAttrNameFields.keySet()) {
+            Field field = objectAttrNameFields.get(name);
+            String param = null;
+            if (field.isAnnotationPresent(Attribute.class)) {
+                param = httpMetaParameters.getAttribute(name);
+            } else if (field.isAnnotationPresent(Cookie.class)) {
+                param = httpMetaParameters.getCookie(name);
+            } else {
+                param = httpMetaParameters.getParam(name);
+            }
             //do annotation
-            if (field.isAnnotationPresent(IgnoreNull.class) && parameter == null) { //ignore null
+            if (field.isAnnotationPresent(IgnoreNull.class) && param == null) { //ignore null
                 continue;
             }
             if (field.isAnnotationPresent(IgnoreEmpty.class)) {     //ignore empty
                 IgnoreEmpty ignoreEmpty = field.getAnnotation(IgnoreEmpty.class);
                 if (ignoreEmpty.trim()) {
-                    if (parameter.trim().isEmpty()) {
+                    if (param.trim().isEmpty()) {
                         continue;
                     }
                 } else {
-                    if (parameter.isEmpty()) {
+                    if (param.isEmpty()) {
                         continue;
                     }
                 }
@@ -148,10 +180,10 @@ public enum ParameterType {
             Annotation[] annotations = field.getAnnotations();
             for (Annotation annotation : annotations) {
                 RequestAnnotationHandler requestAnnotationHandler = RequestHandlerFactory.getAnnotationHandler(annotation.getClass());
-                requestAnnotationHandler.handler(parameter, annotation);
+                requestAnnotationHandler.handler(param, annotation);
             }
-            Object value = parseParam(parameter, field.getType());
-            ReflectUtils.set(param, value, object);
+            Object value = parseParam(param, field.getType());
+            ReflectUtils.set(param, value, parameter.getValue());
         }
     }
 
@@ -185,5 +217,11 @@ public enum ParameterType {
             value = parameter;
         }
         return value;
+    }
+
+    public static ParameterType get(Parameter parameter) {
+        Class type = parameter.getType();
+        Annotation[] annotations = parameter.getAnnotations();
+        return get(type, annotations);
     }
 }

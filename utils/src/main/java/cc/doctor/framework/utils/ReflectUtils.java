@@ -59,10 +59,14 @@ public class ReflectUtils {
     }
 
     public static void set(String field, Object value, Object instance) {
+        set(field, value, value.getClass(), instance);
+    }
+
+    public static void set(String field, Object value, Class valueType, Object instance) {
         String setMethod = "set" + Character.toUpperCase(field.charAt(0)) + field.substring(1);
         try {
             if (value != null) {
-                Method method = instance.getClass().getMethod(setMethod, value.getClass());
+                Method method = instance.getClass().getMethod(setMethod, valueType);
                 method.invoke(instance, value);
             }
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {

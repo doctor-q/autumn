@@ -47,7 +47,7 @@ public class POIUtils {
                     Object value = map.get(k);
                     Function function = colFunctions.get(k.toString());
                     if (function != null) {
-                        value = function.tranform(value);
+                        value = function.transform(value);
                     }
                     if (value != null) {
                         cell.setCellValue(value.toString());
@@ -63,7 +63,7 @@ public class POIUtils {
                         Object value = ReflectUtils.get(fieldName, t);
                         Function function = colFunctions.get(fieldName);
                         if (function != null) {
-                            value = function.tranform(value);
+                            value = function.transform(value);
                         }
                         if (value != null) {
                             cell.setCellValue(value.toString());

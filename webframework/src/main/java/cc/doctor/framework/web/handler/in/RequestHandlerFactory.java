@@ -27,11 +27,9 @@ public class RequestHandlerFactory {
                 if (dataMapper.froms().length != dataMapper.tos().length) {
                     return parameter;
                 }
-                if (dataMapper.arrow().equals("<->") || dataMapper.arrow().equals("->")) {
-                    for (int i = 0; i < dataMapper.froms().length; i++) {
-                        if (parameter.equals(dataMapper.froms()[i])) {
-                            return dataMapper.tos()[i];
-                        }
+                for (int i = 0; i < dataMapper.froms().length; i++) {
+                    if (parameter.equals(dataMapper.froms()[i])) {
+                        return dataMapper.tos()[i];
                     }
                 }
                 return parameter;

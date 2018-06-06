@@ -13,4 +13,5 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 public @interface ListSplit {
     String separator() default ",";
+    Class generic() default String.class;
 }

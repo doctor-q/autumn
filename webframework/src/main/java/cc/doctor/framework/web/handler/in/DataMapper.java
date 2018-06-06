@@ -9,11 +9,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Created by doctor on 17-6-10.
+ * 数据映射
  */
 @Target(ElementType.FIELD)
 @Retention(RUNTIME)
 public @interface DataMapper {
-    String arrow() default "<->";
     String[] froms();
     String[] tos();
 }
