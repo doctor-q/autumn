@@ -7,6 +7,7 @@ import cc.doctor.framework.web.handler.in.RequestAnnotationHandler;
 import cc.doctor.framework.web.handler.in.RequestHandlerFactory;
 import cc.doctor.framework.web.handler.invoke.Parameter;
 import cc.doctor.framework.web.servlet.meta.HttpMetadata;
+import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +47,7 @@ public enum ParameterType {
     JSON(null, JsonParam.class) {
         @Override
         public void setParameter(Parameter parameter, HttpMetadata httpMetadata) {
-            Object object = SerializeUtils.jsonToObject(httpMetadata.getJson(), paramType);
+            Object object = JSONObject.parseObject(httpMetadata.getJson(), paramType);
             parameter.setValue(object);
         }
     },

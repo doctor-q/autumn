@@ -1,11 +1,10 @@
 package cc.doctor.framework.web.servlet;
 
-import cc.doctor.framework.thrift.ResponseUtils;
 import cc.doctor.framework.utils.Container;
-import cc.doctor.framework.utils.SerializeUtils;
 import cc.doctor.framework.web.exception.ExceptionHandler;
 import cc.doctor.framework.web.route.RouteInvoke;
 import cc.doctor.framework.web.route.RouteService;
+import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +49,7 @@ public class DispatchServlet extends HttpServlet {
                     try {
                         ExceptionHandler exceptionHandler = (ExceptionHandler) Container.container.getOrCreateComponent(exceptionHandlerClass);
                         PrintWriter writer = resp.getWriter();
-                        writer.write(SerializeUtils.objectToJson(ResponseUtils.errorResponse(exceptionHandler.handleException(e))));
+                        writer.write(JSONObject.toJSONString(exceptionHandler.handleException(e)));
                     } catch (Exception e1) {
                         log.error("", e1);
                     }

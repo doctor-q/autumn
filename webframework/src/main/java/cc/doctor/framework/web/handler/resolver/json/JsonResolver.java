@@ -1,7 +1,7 @@
 package cc.doctor.framework.web.handler.resolver.json;
 
-import cc.doctor.framework.utils.SerializeUtils;
 import cc.doctor.framework.web.handler.resolver.Resolver;
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * Created by doctor on 2017/7/21.
@@ -9,7 +9,7 @@ import cc.doctor.framework.web.handler.resolver.Resolver;
 public class JsonResolver implements Resolver {
 
     public String resolve(Object data) {
-        return SerializeUtils.objectToJson(data);
+        return JSONObject.toJSONString(data);
     }
 
     @Override
