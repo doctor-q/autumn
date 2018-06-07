@@ -107,4 +107,13 @@ public class ReflectUtils {
         }
         return null;
     }
+
+    public static Class getClassByName(String className) {
+        try {
+            return Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            log.error("", e);
+        }
+        return null;
+    }
 }

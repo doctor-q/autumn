@@ -10,12 +10,15 @@ import javax.servlet.http.HttpServletResponse;
  * Created by doctor on 2017/7/30.
  */
 public class FreemarkerViewResolver extends ViewResolver {
-    public FreemarkerViewResolver(ModelView modelView, HttpServlet servlet, HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
-        super(modelView, servlet, servletRequest, servletResponse);
+
+
+    @Override
+    public String resolveView(ModelView modelView, HttpServlet servlet, HttpServletRequest servletRequest, HttpServletResponse servletResponse, Object data) {
+        return FreeMarkerUtils.renderTemplate(getViewBasedHome(modelView, servlet), modelView.view(), data);
     }
 
     @Override
-    public String resolveView(ModelView modelView, Object data) {
-        return FreeMarkerUtils.renderTemplate(getViewBasedHome(), modelView.view(), data);
+    public String getName() {
+        return "freemarker";
     }
 }

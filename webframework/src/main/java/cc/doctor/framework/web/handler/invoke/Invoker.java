@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -25,7 +26,7 @@ public class Invoker {
     /**
      * 执行参数
      */
-    private List<Parameter> parameters;
+    private List<Parameter> parameters = new LinkedList<>();
 
     /**
      * 执行切面

@@ -13,13 +13,11 @@ import java.util.Collections;
  * Created by doctor on 2017/7/30.
  */
 public class ExcelViewResolver extends ViewResolver {
-    public ExcelViewResolver(ModelView modelView, HttpServlet servlet, HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
-        super(modelView, servlet, servletRequest, servletResponse);
-    }
+
 
     @Override
-    public String resolveView(ModelView modelView, Object data) {
-        getServletResponse().setHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_EXCEL);
+    public String resolveView(ModelView modelView, HttpServlet servlet, HttpServletRequest servletRequest, HttpServletResponse servletResponse, Object data) {
+        servletResponse.setHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_EXCEL);
         Iterable iterable;
         if (! (data instanceof Iterable)) {
             iterable = Collections.singletonList(data);
@@ -27,10 +25,15 @@ public class ExcelViewResolver extends ViewResolver {
             iterable = (Iterable)data;
         }
         try {
-            POIUtils.exportExcel(modelView.view(), null, iterable, getServletResponse().getOutputStream());
+            POIUtils.exportExcel(modelView.view(), null, iterable, servletResponse.getOutputStream());
         } catch (IOException e) {
             log.error("", e);
         }
         return null;
+    }
+
+    @Override
+    public String getName() {
+        return "excel";
     }
 }

@@ -15,8 +15,11 @@ public class HttpMetadata {
     //    http head
     private Map<String, String> headers;
     private String json;
+    // http parameters
     private Map<String, String> params;
+    // servlet attributes
     private Map<String, Object> attributes;
+    // http cookies
     private List<Cookie> cookies;
 
     public String getPath() {

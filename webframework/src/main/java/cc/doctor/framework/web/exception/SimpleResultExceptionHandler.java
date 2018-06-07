@@ -7,7 +7,7 @@ package cc.doctor.framework.web.exception;
 public class SimpleResultExceptionHandler implements ExceptionHandler<String> {
 
     @Override
-    public String handleException(Exception e) {
+    public String handleException(Throwable e) {
         return e.getCause().toString();
     }
 }

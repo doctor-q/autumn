@@ -1,10 +1,10 @@
 package cc.doctor.framework.web.sample;
 
-import cc.doctor.framework.web.handler.parser.Form;
-import cc.doctor.framework.web.handler.parser.JsonParam;
-import cc.doctor.framework.web.handler.parser.Param;
+import cc.doctor.framework.web.handler.parser.*;
 import cc.doctor.framework.web.handler.resolver.json.JsonBody;
 import cc.doctor.framework.web.handler.resolver.modelview.ModelView;
+import cc.doctor.framework.web.route.RequestMapping;
+import cc.doctor.framework.web.servlet.meta.HttpMetadata;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -17,7 +17,8 @@ import java.util.Map;
  * todo memory loads
  * todo caches
  */
-public class SampleService {
+@RequestMapping
+public class SampleController {
     public Object sampleData() {
         Map<Object, Object> map = new HashMap<>();
         map.put("a", 10);
@@ -25,28 +26,57 @@ public class SampleService {
         return map;
     }
     @JsonBody
+    @RequestMapping("/json")
     public Object sampleJsonBody(@Form FormParam form, @Param("id")Long id) {
         System.out.println(id);
         return form;
     }
 
     @ModelView(resolver = "vm", view = "sample.vm")
-    public Object sampleModelView() {
+    @RequestMapping("/vm")
+    public Object sampleModelView(UnpackParam unpackParam) {
+        System.out.println(unpackParam);
         return sampleData();
     }
 
     @ModelView(resolver = "jsp", view = "sample.jsp")
+    @RequestMapping("/jsp")
     public Object sampleJsp() {
         return sampleData();
     }
 
     @ModelView(resolver = "excel", view = "sample.xls")
+    @RequestMapping("/ex")
     public Object sampleExcel() {
         List list = new LinkedList();
         for (int i = 0; i < 10; i++) {
             list.add(sampleData());
         }
         return list;
+    }
+
+    public static class UnpackParam extends Unpack {
+        private String aa;
+        @Header("h")
+        private String header;
+        @Cookie("c")
+        private String cookie;
+        @Override
+        public void beforeUnpack(HttpMetadata httpMetadata) {
+            aa = httpMetadata.getParam("a");
+        }
+
+        @Override
+        public void afterUnpack(HttpMetadata httpMetadata) {
+
+        }
+
+        @Override
+        public String toString() {
+            return "UnpackParam{" +
+                    "aa='" + aa + '\'' +
+                    "} " + super.toString();
+        }
     }
 
     public static class FormParam {

@@ -12,20 +12,21 @@ import java.io.IOException;
  */
 public class ForwardViewResolver extends ViewResolver {
 
-    public ForwardViewResolver(ModelView modelView, HttpServlet servlet, HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
-        super(modelView, servlet, servletRequest, servletResponse);
-    }
-
     @Override
-    public String resolveView(ModelView modelView, Object data) {
-        String prefix = getPrefix();
+    public String resolveView(ModelView modelView, HttpServlet servlet, HttpServletRequest servletRequest, HttpServletResponse servletResponse, Object data) {
+        String prefix = getPrefix(modelView);
         String view = modelView.view();
-        RequestDispatcher requestDispatcher = getServlet().getServletContext().getRequestDispatcher("/" + prefix + "/" + view);
+        RequestDispatcher requestDispatcher = servlet.getServletContext().getRequestDispatcher("/" + prefix + "/" + view);
         try {
-            requestDispatcher.forward(getServletRequest(), getServletResponse());
+            requestDispatcher.forward(servletRequest, servletResponse);
         } catch (ServletException | IOException e) {
             throw new RuntimeException(e);
         }
         return null;
+    }
+
+    @Override
+    public String getName() {
+        return "forward";
     }
 }

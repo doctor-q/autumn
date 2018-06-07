@@ -10,15 +10,18 @@ import javax.servlet.http.HttpServletResponse;
  * Created by doctor on 2017/7/21.
  */
 public class VelocityViewResolver extends ViewResolver {
-    public VelocityViewResolver(ModelView modelView, HttpServlet servlet, HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
-        super(modelView, servlet, servletRequest, servletResponse);
-    }
+
 
     @Override
-    public String resolveView(ModelView modelView, Object data) {
-        String viewBasedHome = getViewBasedHome();
+    public String resolveView(ModelView modelView, HttpServlet servlet, HttpServletRequest servletRequest, HttpServletResponse servletResponse, Object data) {
+        String viewBasedHome = getViewBasedHome(modelView, servlet);
         String view = modelView.view();
         String viewPath = viewBasedHome + "/" + view;
         return VelocityUtils.render(viewPath, data);
+    }
+
+    @Override
+    public String getName() {
+        return null;
     }
 }

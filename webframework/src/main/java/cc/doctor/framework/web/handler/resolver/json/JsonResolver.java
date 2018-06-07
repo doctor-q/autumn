@@ -7,8 +7,13 @@ import cc.doctor.framework.web.handler.resolver.Resolver;
  * Created by doctor on 2017/7/21.
  */
 public class JsonResolver implements Resolver {
-    @Override
+
     public String resolve(Object data) {
         return SerializeUtils.objectToJson(data);
+    }
+
+    @Override
+    public String getName() {
+        return "json";
     }
 }

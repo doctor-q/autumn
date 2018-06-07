@@ -17,28 +17,44 @@ import java.lang.reflect.Method;
 public class RouteInvoke {
     private static final Logger log = LoggerFactory.getLogger(RouteInvoke.class);
 
-    private String service;
-    private Class serviceClass;
+    // 路由路径
+    private String path;
+    // 控制器别名
+    private String controller;
+    // 控制器类型
+    private Class controllerClass;
+    // 方法名
     private String methodName;
+    // 方法
     private Method method;
-    private String exceptionHandler;
+    // 异常处理器
+    private Class exceptionHandler;
     private Boolean found;
+    // 方法执行参数、切面
     private Invoker invoker;
 
-    public String getService() {
-        return service;
+    public String getPath() {
+        return path;
     }
 
-    public void setService(String service) {
-        this.service = service;
+    public void setPath(String path) {
+        this.path = path;
     }
 
-    public Class getServiceClass() {
-        return serviceClass;
+    public String getController() {
+        return controller;
     }
 
-    public void setServiceClass(Class serviceClass) {
-        this.serviceClass = serviceClass;
+    public void setController(String controller) {
+        this.controller = controller;
+    }
+
+    public Class getControllerClass() {
+        return controllerClass;
+    }
+
+    public void setControllerClass(Class controllerClass) {
+        this.controllerClass = controllerClass;
     }
 
     public String getMethodName() {
@@ -57,11 +73,11 @@ public class RouteInvoke {
         return method;
     }
 
-    public String getExceptionHandler() {
+    public Class getExceptionHandler() {
         return exceptionHandler;
     }
 
-    public void setExceptionHandler(String exceptionHandler) {
+    public void setExceptionHandler(Class exceptionHandler) {
         this.exceptionHandler = exceptionHandler;
     }
 
@@ -77,7 +93,7 @@ public class RouteInvoke {
         if (invoker == null) {
             Invoker invoker = new Invoker();
             // instance
-            Object instance = Container.container.getOrCreateComponent(serviceClass);
+            Object instance = Container.container.getOrCreateComponent(controllerClass);
             invoker.setInstance(instance);
             // param annotation
             Annotation[][] parameterAnnotations = method.getParameterAnnotations();

@@ -1,17 +1,17 @@
 package cc.doctor.framework.web.handler;
 
+import cc.doctor.framework.utils.Container;
 import cc.doctor.framework.utils.ReflectUtils;
-import cc.doctor.framework.utils.SerializeUtils;
 import cc.doctor.framework.web.Constants;
 import cc.doctor.framework.web.handler.out.ResponseAnnotationHandler;
 import cc.doctor.framework.web.handler.out.ResponseHandlerFactory;
 import cc.doctor.framework.web.handler.resolver.Resolver;
+import cc.doctor.framework.web.handler.resolver.ResolverRegistry;
 import cc.doctor.framework.web.handler.resolver.json.JsonBody;
 import cc.doctor.framework.web.handler.resolver.json.JsonResolver;
 import cc.doctor.framework.web.handler.resolver.modelview.ModelView;
-import cc.doctor.framework.web.handler.resolver.modelview.ViewResolverFactory;
+import cc.doctor.framework.web.handler.resolver.modelview.ViewResolver;
 import cc.doctor.framework.web.route.RouteInvoke;
-import cc.doctor.framework.web.servlet.DispatchServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +35,7 @@ public class ResponseParser {
     public static final ResponseParser responseParser = new ResponseParser();
     private List<Class> parseClasses = new LinkedList<>();
     public static final Logger log = LoggerFactory.getLogger(ResponseParser.class);
+    private ResolverRegistry resolverRegistry = Container.container.getOrCreateComponent(ResolverRegistry.class);
 
     private ResponseParser() {
     }
@@ -45,24 +46,26 @@ public class ResponseParser {
 
     public void invoke(Object data, RouteInvoke routeInvoke, HttpServlet servlet, HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException {
         Object ret = doParse(data);
-        // do resolver
-        Resolver resolver = new JsonResolver();
+        // do resolver， 默认json resolver
+        String resolve = null;
         Method method = routeInvoke.getMethod();
         Annotation[] annotations = method.getAnnotations();
         for (Annotation annotation : annotations) {
             if (annotation.annotationType().equals(JsonBody.class)) {
-                resolver = new JsonResolver();
+                JsonResolver resolver = resolverRegistry.getResolver(JsonResolver.class);
+                resolve = resolver.resolve(ret);
                 servletResponse.setHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
                 break;
             }
             if (annotation.annotationType().equals(ModelView.class)) {
                 servletResponse.setHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_HTML);
                 ModelView modelView = (ModelView) annotation;
-                resolver = new ViewResolverFactory(modelView, servlet, servletRequest, servletResponse);
+                ViewResolver resolver = (ViewResolver) resolverRegistry.getResolver(modelView.resolver());
+                resolve = resolver.resolveView(modelView, servlet, servletRequest, servletResponse, ret);
+                break;
             }
         }
         try {
-            String resolve = resolver.resolve(ret);
             if (resolve != null) {
                 PrintWriter writer = servletResponse.getWriter();
                 writer.write(resolve);

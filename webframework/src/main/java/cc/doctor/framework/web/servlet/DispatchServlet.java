@@ -37,18 +37,18 @@ public class DispatchServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
         RouteInvoke routeInvoke = routeService.getInvoke(pathInfo);
-        if (routeInvoke.getFound()) {
-            String exceptionHandlerClass = routeInvoke.getExceptionHandler() == null ? routeService.getRoutesConfig().get__globalExceptionHandler() : routeInvoke.getExceptionHandler();
+        if (routeInvoke != null) {
             try {
                 Object invoke = requestParser.invoke(this, req, resp, routeInvoke);
                 if (invoke != null) {
                     responseParser.invoke(invoke, routeInvoke, this, req, resp);
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 log.error("", e);
+                Class exceptionHandlerClass = routeInvoke.getExceptionHandler();
                 if (exceptionHandlerClass != null) {
                     try {
-                        ExceptionHandler exceptionHandler = (ExceptionHandler) Class.forName(exceptionHandlerClass).newInstance();
+                        ExceptionHandler exceptionHandler = (ExceptionHandler) Container.container.getOrCreateComponent(exceptionHandlerClass);
                         PrintWriter writer = resp.getWriter();
                         writer.write(SerializeUtils.objectToJson(ResponseUtils.errorResponse(exceptionHandler.handleException(e))));
                     } catch (Exception e1) {
