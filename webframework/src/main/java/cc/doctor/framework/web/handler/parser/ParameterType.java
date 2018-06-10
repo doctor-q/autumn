@@ -2,22 +2,18 @@ package cc.doctor.framework.web.handler.parser;
 
 import cc.doctor.framework.utils.Container;
 import cc.doctor.framework.utils.ReflectUtils;
-import cc.doctor.framework.utils.SerializeUtils;
 import cc.doctor.framework.web.handler.in.RequestAnnotationHandler;
 import cc.doctor.framework.web.handler.in.RequestHandlerFactory;
 import cc.doctor.framework.web.handler.invoke.Parameter;
 import cc.doctor.framework.web.servlet.meta.HttpMetadata;
+import cc.doctor.framework.web.utils.StringFormats;
 import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by doctor on 2017/7/21.
@@ -32,22 +28,20 @@ public enum ParameterType {
     UNPACK(Unpack.class, null) {
         @Override
         public void setParameter(Parameter parameter, HttpMetadata httpMetadata) {
-            try {
-                // unpack can do a before after hook
-                Object instance = paramType.newInstance();
-                parameter.setValue(instance);
-                ((Unpack) instance).beforeUnpack(httpMetadata);
-                fillObject(httpMetadata, parameter);
-                ((Unpack) instance).afterUnpack(httpMetadata);
-            } catch (InstantiationException | IllegalAccessException e) {
-                log.error("", e);
-            }
+
+            // unpack can do a before after hook
+            Object instance = Container.container.newComponent(parameter.getType());
+            parameter.setValue(instance);
+            ((Unpack) instance).beforeUnpack(httpMetadata);
+            fillObject(httpMetadata, parameter);
+            ((Unpack) instance).afterUnpack(httpMetadata);
+
         }
     },
     JSON(null, JsonParam.class) {
         @Override
         public void setParameter(Parameter parameter, HttpMetadata httpMetadata) {
-            Object object = JSONObject.parseObject(httpMetadata.getJson(), paramType);
+            Object object = JSONObject.parseObject(httpMetadata.getJson(), parameter.getType());
             parameter.setValue(object);
         }
     },
@@ -69,7 +63,7 @@ public enum ParameterType {
             if (value == null) {
                 return;
             }
-            parameter.setValue(parseParam(value, parameter.getType()));
+            parameter.setValue(StringFormats.parse(value, parameter.getType()));
         }
     },
     ATTRIBUTE(null, Attribute.class) {
@@ -81,7 +75,7 @@ public enum ParameterType {
             if (value == null) {
                 return;
             }
-            parameter.setValue(parseParam(value, parameter.getType()));
+            parameter.setValue(StringFormats.parse(value, parameter.getType()));
         }
     },
     COOKIE(null, Cookie.class) {
@@ -93,7 +87,7 @@ public enum ParameterType {
             if (value == null) {
                 return;
             }
-            parameter.setValue(parseParam(value, parameter.getType()));
+            parameter.setValue(StringFormats.parse(value, parameter.getType()));
         }
     }, HEADER(null, Header.class) {
         @Override
@@ -104,7 +98,7 @@ public enum ParameterType {
             if (value == null) {
                 return;
             }
-            parameter.setValue(parseParam(value, parameter.getType()));
+            parameter.setValue(StringFormats.parse(value, parameter.getType()));
         }
     };
     private static final Logger log = LoggerFactory.getLogger(ReflectUtils.class);
@@ -120,7 +114,7 @@ public enum ParameterType {
         for (ParameterType parameterType : ParameterType.values()) {
             if (paramType != null &&
                     parameterType.paramType != null &&
-                    paramType.isAssignableFrom(parameterType.paramType)) {
+                    parameterType.paramType.isAssignableFrom(paramType)) {
                 return parameterType;
             }
             if (paramAnnotations != null && paramAnnotations.length > 0) {
@@ -136,6 +130,7 @@ public enum ParameterType {
 
 
     public void setParameter(Parameter parameter, HttpMetadata httpMetadata) {
+        // override do nothing
     }
 
     public Annotation getAnnotation(Annotation[] annotations, Class annotationClass) {
@@ -147,25 +142,21 @@ public enum ParameterType {
         return null;
     }
 
-    public void fillObject(HttpMetadata httpMetaParameters, Parameter parameter) {
-        if (parameter.getValue() != null) {
+    public void fillObject(HttpMetadata httpMetadata, Parameter parameter) {
+        if (parameter.getValue() == null) {
             parameter.setValue(Container.container.newComponent(parameter.getType()));
         }
         Map<String, Field> objectAttrNameFields = ReflectUtils.getObjectAttrNameFields(parameter.getType());
         for (String name : objectAttrNameFields.keySet()) {
             Field field = objectAttrNameFields.get(name);
-            String param = null;
-            if (field.isAnnotationPresent(Attribute.class)) {
-                param = httpMetaParameters.getAttribute(name);
-            } else if (field.isAnnotationPresent(Cookie.class)) {
-                param = httpMetaParameters.getCookie(name);
-            } else {
-                param = httpMetaParameters.getParam(name);
-            }
-            //do annotation
-            if (field.isAnnotationPresent(IgnoreNull.class) && param == null) { //ignore null
+            // 仅仅封装为空的参数
+            Object fieldValue = ReflectUtils.get(field.getName(), parameter.getValue());
+            if (fieldValue != null) {
                 continue;
             }
+            // 提取请求的参数
+            String param = ParameterSource.getParameterOfAll(httpMetadata, field);
+            //do annotation
             if (field.isAnnotationPresent(IgnoreEmpty.class)) {     //ignore empty
                 IgnoreEmpty ignoreEmpty = field.getAnnotation(IgnoreEmpty.class);
                 if (ignoreEmpty.trim()) {
@@ -178,46 +169,21 @@ public enum ParameterType {
                     }
                 }
             }
+            Object value = param;
+            // 请求注解转换
             Annotation[] annotations = field.getAnnotations();
             for (Annotation annotation : annotations) {
                 RequestAnnotationHandler requestAnnotationHandler = RequestHandlerFactory.getAnnotationHandler(annotation.getClass());
-                requestAnnotationHandler.handler(param, annotation);
+                if (requestAnnotationHandler != null) {
+                    value = requestAnnotationHandler.handler(value.toString(), annotation);
+                }
             }
-            Object value = parseParam(param, field.getType());
-            ReflectUtils.set(param, value, parameter.getValue());
-        }
-    }
-
-    public Object parseParam(String parameter, Class type) {
-        if (parameter == null || type == null) {
-            return null;
-        }
-        Object value = null;
-        if (type.equals(Integer.class)) {
-            value = Integer.parseInt(parameter);
-        } else if (type.equals(Long.class)) {
-            value = Long.parseLong(parameter);
-        } else if (type.equals(Float.class)) {
-            value = Float.parseFloat(parameter);
-        } else if (type.equals(Double.class)) {
-            value = Double.parseDouble(parameter);
-        } else if (type.equals(BigDecimal.class)) {
-            value = BigDecimal.valueOf(Double.parseDouble(parameter));
-        } else if (type.equals(List.class)) {
-            value = Arrays.asList(parameter.split(","));
-        } else if (type.equals(Set.class)) {
-            try {
-                Set<String> set = (Set<String>) type.newInstance();
-                set.addAll(Arrays.asList(parameter.split(",")));
-                value = set;
-            } catch (InstantiationException | IllegalAccessException e) {
-                log.error("", e);
+            // 基本类型转换
+            value = StringFormats.parse(value, field.getType());
+            if (value != null) {
+                ReflectUtils.set(field, value, parameter.getValue());
             }
-
-        } else if (type.equals(String.class)) {
-            value = parameter;
         }
-        return value;
     }
 
     public static ParameterType get(Parameter parameter) {

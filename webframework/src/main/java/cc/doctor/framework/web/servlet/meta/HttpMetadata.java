@@ -94,7 +94,7 @@ public class HttpMetadata {
     }
 
     public String getCookie(String name) {
-        if (name == null) {
+        if (name == null || cookies == null) {
             return null;
         }
         for (Cookie cookie : cookies) {

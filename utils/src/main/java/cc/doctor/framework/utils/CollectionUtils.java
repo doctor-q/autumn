@@ -31,6 +31,12 @@ public class CollectionUtils {
             return true;
         }
     }
+
+    public static <F> String join(String on, F ... items) {
+        List<F> fs = Arrays.asList(items);
+        return join(fs, on);
+    }
+
     public static <F> String join(Collection<F> items, String on) {
         return join(items, on, null);
     }

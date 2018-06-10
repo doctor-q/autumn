@@ -49,7 +49,7 @@ public class Container {
         return components.get(name);
     }
 
-    public <T> T getOrCreateComponent(Class<T> tClass) {
+    public synchronized <T> T getOrCreateComponent(Class<T> tClass) {
         T component = getComponent(tClass);
         if (component == null) {
             try {

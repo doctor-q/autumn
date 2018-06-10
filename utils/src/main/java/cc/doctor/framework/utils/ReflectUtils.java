@@ -74,6 +74,17 @@ public class ReflectUtils {
         }
     }
 
+    public static void set(Field field, Object value, Object instance) {
+        field.setAccessible(true);
+        try {
+            if (value != null) {
+                field.set(instance, value);
+            }
+        } catch (IllegalAccessException e) {
+            log.error("", e);
+        }
+    }
+
     public static Object get(String field, Object instance) {
         String getMethod = "get" + Character.toUpperCase(field.charAt(0)) + field.substring(1);
         try {
@@ -98,7 +109,7 @@ public class ReflectUtils {
         }
     }
 
-    public static  <T> T[] enumMap(Class<T> enumClass) {
+    public static <T> T[] enumMap(Class<T> enumClass) {
         try {
             Method values = enumClass.getMethod("values");
             return (T[]) values.invoke(null);

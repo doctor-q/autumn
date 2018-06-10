@@ -2,6 +2,8 @@ package cc.doctor.framework.web.servlet;
 
 import cc.doctor.framework.utils.Container;
 import cc.doctor.framework.web.exception.ExceptionHandler;
+import cc.doctor.framework.web.handler.RequestParser;
+import cc.doctor.framework.web.handler.ResponseParser;
 import cc.doctor.framework.web.route.RouteInvoke;
 import cc.doctor.framework.web.route.RouteService;
 import com.alibaba.fastjson.JSONObject;
@@ -16,8 +18,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import static cc.doctor.framework.utils.Container.container;
-import static cc.doctor.framework.web.handler.RequestParser.requestParser;
-import static cc.doctor.framework.web.handler.ResponseParser.responseParser;
 
 /**
  * Created by doctor on 2017/3/18.
@@ -25,6 +25,9 @@ import static cc.doctor.framework.web.handler.ResponseParser.responseParser;
 public class DispatchServlet extends HttpServlet {
     private static final long serialVersionUID = -6726851046106695269L;
     private static final Logger log = LoggerFactory.getLogger(Container.class);
+
+    private RequestParser requestParser = container.getOrCreateComponent(RequestParser.class);
+    private ResponseParser responseParser = container.getOrCreateComponent(ResponseParser.class);
     private RouteService routeService = container.getOrCreateComponent(RouteService.class);
 
     @Override

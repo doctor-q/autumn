@@ -1,8 +1,11 @@
 package cc.doctor.framework.web.handler.in;
 
 import cc.doctor.framework.utils.DateUtils;
+import cc.doctor.framework.web.utils.StringFormats;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -49,7 +52,12 @@ public class RequestHandlerFactory {
             @Override
             public Object handler(String parameter, ListSplit annotation) {
                 if (parameter != null) {
-                    return Arrays.asList(parameter.split(annotation.separator()));
+                    String[] split = parameter.split(annotation.separator());
+                    List list = new ArrayList(split.length);
+                    for (String param : split) {
+                        list.add(StringFormats.parse(param, annotation.generic()));
+                    }
+                    return list;
                 }
                 return null;
             }

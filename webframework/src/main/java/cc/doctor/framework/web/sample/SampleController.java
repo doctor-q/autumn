@@ -1,5 +1,6 @@
 package cc.doctor.framework.web.sample;
 
+import cc.doctor.framework.web.handler.in.ListSplit;
 import cc.doctor.framework.web.handler.parser.*;
 import cc.doctor.framework.web.handler.resolver.json.JsonBody;
 import cc.doctor.framework.web.handler.resolver.modelview.ModelView;
@@ -28,24 +29,22 @@ public class SampleController {
     @JsonBody
     @RequestMapping("/json")
     public Object sampleJsonBody(@Form FormParam form, @Param("id")Long id) {
-        System.out.println(id);
         return form;
     }
 
-    @ModelView(resolver = "vm", view = "sample.vm")
+    @ModelView(resolver = "vm", view = "sample")
     @RequestMapping("/vm")
-    public Object sampleModelView(UnpackParam unpackParam) {
-        System.out.println(unpackParam);
+    public Object sampleModelView(@Form FormParam formParam) {
+        return formParam;
+    }
+
+    @ModelView(resolver = "freemarker", view = "sample")
+    @RequestMapping("/ftl")
+    public Object sampleJsp(UnpackParam unpackParam) {
         return sampleData();
     }
 
-    @ModelView(resolver = "jsp", view = "sample.jsp")
-    @RequestMapping("/jsp")
-    public Object sampleJsp() {
-        return sampleData();
-    }
-
-    @ModelView(resolver = "excel", view = "sample.xls")
+    @ModelView(resolver = "excel", view = "sample")
     @RequestMapping("/ex")
     public Object sampleExcel() {
         List list = new LinkedList();
@@ -55,12 +54,41 @@ public class SampleController {
         return list;
     }
 
+    @RequestMapping("/json2")
+    @ModelView(resolver = "freemarker", view = "sample")
+    public Object jsonParam(@JsonParam JsonP jsonP) {
+        return jsonP;
+    }
+
     public static class UnpackParam extends Unpack {
         private String aa;
-        @Header("h")
-        private String header;
-        @Cookie("c")
-        private String cookie;
+        private String b;
+        private String c;
+
+        public String getAa() {
+            return aa;
+        }
+
+        public void setAa(String aa) {
+            this.aa = aa;
+        }
+
+        public String getB() {
+            return b;
+        }
+
+        public void setB(String b) {
+            this.b = b;
+        }
+
+        public String getC() {
+            return c;
+        }
+
+        public void setC(String c) {
+            this.c = c;
+        }
+
         @Override
         public void beforeUnpack(HttpMetadata httpMetadata) {
             aa = httpMetadata.getParam("a");
@@ -68,24 +96,45 @@ public class SampleController {
 
         @Override
         public void afterUnpack(HttpMetadata httpMetadata) {
+            System.out.println(aa);
+            System.out.println(b);
+            System.out.println(c);
+        }
+    }
 
+    public static class JsonP {
+        private String a;
+        private Integer b;
+
+        public String getA() {
+            return a;
         }
 
-        @Override
-        public String toString() {
-            return "UnpackParam{" +
-                    "aa='" + aa + '\'' +
-                    "} " + super.toString();
+        public void setA(String a) {
+            this.a = a;
+        }
+
+        public Integer getB() {
+            return b;
+        }
+
+        public void setB(Integer b) {
+            this.b = b;
         }
     }
 
     public static class FormParam {
         private Integer a;
+        @Param(value = "bb")
         private Long b;
+        @Header
         private Double c;
+        @Cookie
         private Float d;
         private String e;
         private Boolean f;
+        @ListSplit
+        private List<Integer> es;
 
         public Integer getA() {
             return a;
@@ -133,6 +182,14 @@ public class SampleController {
 
         public void setF(Boolean f) {
             this.f = f;
+        }
+
+        public List<Integer> getEs() {
+            return es;
+        }
+
+        public void setEs(List<Integer> es) {
+            this.es = es;
         }
 
         @Override

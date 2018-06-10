@@ -127,9 +127,9 @@ public class InvokeParam {
                     for (String s : split) {
                         list.add(transformValue(generic, s));
                     }
-                    ReflectUtils.set(field.getName(), list, List.class, params.get(index));
+                    ReflectUtils.set(field, list, params.get(index));
                 } else {
-                    ReflectUtils.set(field.getName(), transformValue(field.getType(), value), params.get(index));
+                    ReflectUtils.set(field, transformValue(field.getType(), value), params.get(index));
                 }
             }
         }

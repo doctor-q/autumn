@@ -14,11 +14,16 @@ public class FreemarkerViewResolver extends ViewResolver {
 
     @Override
     public String resolveView(ModelView modelView, HttpServlet servlet, HttpServletRequest servletRequest, HttpServletResponse servletResponse, Object data) {
-        return FreeMarkerUtils.renderTemplate(getViewBasedHome(modelView, servlet), modelView.view(), data);
+        return FreeMarkerUtils.renderTemplate(getBaseHome(modelView, servlet), getViewRelativePath(modelView), data);
     }
 
     @Override
     public String getName() {
         return "freemarker";
+    }
+
+    @Override
+    public String defaultSuffix() {
+        return "ftl";
     }
 }

@@ -5,7 +5,6 @@ import cc.doctor.framework.utils.ReflectUtils;
 import cc.doctor.framework.web.Constants;
 import cc.doctor.framework.web.handler.out.ResponseAnnotationHandler;
 import cc.doctor.framework.web.handler.out.ResponseHandlerFactory;
-import cc.doctor.framework.web.handler.resolver.Resolver;
 import cc.doctor.framework.web.handler.resolver.ResolverRegistry;
 import cc.doctor.framework.web.handler.resolver.json.JsonBody;
 import cc.doctor.framework.web.handler.resolver.json.JsonResolver;
@@ -32,12 +31,12 @@ import java.util.Map;
  * Created by doctor on 2017/6/29.
  */
 public class ResponseParser {
-    public static final ResponseParser responseParser = new ResponseParser();
-    private List<Class> parseClasses = new LinkedList<>();
     public static final Logger log = LoggerFactory.getLogger(ResponseParser.class);
+
+    private List<Class> parseClasses = new LinkedList<>();
     private ResolverRegistry resolverRegistry = Container.container.getOrCreateComponent(ResolverRegistry.class);
 
-    private ResponseParser() {
+    public ResponseParser() {
     }
 
     public void addParseClasses(Class clazz) {
@@ -49,21 +48,17 @@ public class ResponseParser {
         // do resolver， 默认json resolver
         String resolve = null;
         Method method = routeInvoke.getMethod();
-        Annotation[] annotations = method.getAnnotations();
-        for (Annotation annotation : annotations) {
-            if (annotation.annotationType().equals(JsonBody.class)) {
-                JsonResolver resolver = resolverRegistry.getResolver(JsonResolver.class);
-                resolve = resolver.resolve(ret);
-                servletResponse.setHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
-                break;
-            }
-            if (annotation.annotationType().equals(ModelView.class)) {
-                servletResponse.setHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_HTML);
-                ModelView modelView = (ModelView) annotation;
-                ViewResolver resolver = (ViewResolver) resolverRegistry.getResolver(modelView.resolver());
-                resolve = resolver.resolveView(modelView, servlet, servletRequest, servletResponse, ret);
-                break;
-            }
+        if (method.isAnnotationPresent(JsonBody.class)) {
+            JsonResolver resolver = resolverRegistry.getResolver(JsonResolver.class);
+            resolve = resolver.resolve(ret);
+            servletResponse.setHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
+        } else if (method.isAnnotationPresent(ModelView.class)) {
+            servletResponse.setHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_HTML);
+            ModelView modelView = method.getAnnotation(ModelView.class);
+            ViewResolver resolver = (ViewResolver) resolverRegistry.getResolver(modelView.resolver());
+            resolve = resolver.resolveView(modelView, servlet, servletRequest, servletResponse, ret);
+        } else {
+            throw new RuntimeException("Resolver miss or resolver not support");
         }
         try {
             if (resolve != null) {

@@ -5,4 +5,6 @@ package cc.doctor.framework.web.handler.resolver;
  */
 public interface Resolver {
     String getName();
+
+    String defaultSuffix();
 }

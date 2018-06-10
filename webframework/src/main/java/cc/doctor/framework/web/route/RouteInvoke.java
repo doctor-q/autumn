@@ -95,6 +95,7 @@ public class RouteInvoke {
             // instance
             Object instance = Container.container.getOrCreateComponent(controllerClass);
             invoker.setInstance(instance);
+            invoker.setMethod(method);
             // param annotation
             Annotation[][] parameterAnnotations = method.getParameterAnnotations();
             Class<?>[] parameterTypes = method.getParameterTypes();

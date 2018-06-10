@@ -14,14 +14,17 @@ public class VelocityViewResolver extends ViewResolver {
 
     @Override
     public String resolveView(ModelView modelView, HttpServlet servlet, HttpServletRequest servletRequest, HttpServletResponse servletResponse, Object data) {
-        String viewBasedHome = getViewBasedHome(modelView, servlet);
-        String view = modelView.view();
-        String viewPath = viewBasedHome + "/" + view;
+        String viewPath = getViewPath(modelView, servlet);
         return VelocityUtils.render(viewPath, data);
     }
 
     @Override
     public String getName() {
-        return null;
+        return "vm";
+    }
+
+    @Override
+    public String defaultSuffix() {
+        return "vm";
     }
 }

@@ -36,4 +36,9 @@ public class ExcelViewResolver extends ViewResolver {
     public String getName() {
         return "excel";
     }
+
+    @Override
+    public String defaultSuffix() {
+        return "xls";
+    }
 }

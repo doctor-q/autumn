@@ -29,4 +29,9 @@ public class ForwardViewResolver extends ViewResolver {
     public String getName() {
         return "forward";
     }
+
+    @Override
+    public String defaultSuffix() {
+        return null;
+    }
 }

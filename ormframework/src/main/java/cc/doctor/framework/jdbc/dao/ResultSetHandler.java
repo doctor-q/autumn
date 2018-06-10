@@ -1,6 +1,7 @@
 package cc.doctor.framework.jdbc.dao;
 
 import cc.doctor.framework.jdbc.sql.DataModel;
+import cc.doctor.framework.utils.Container;
 import cc.doctor.framework.utils.ReflectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,7 @@ public class ResultSetHandler {
         List<D> dataModels = new LinkedList<>();
         try {
             while (resultSet.next()) {
-                D dataModel = dClass.newInstance();
+                D dataModel = Container.container.newComponent(dClass);
                 Map<String, Field> attrNameFields = ReflectUtils.getObjectAttrNameFields(dClass);
                 for (String attribute : attrNameFields.keySet()) {
                     Field field = attrNameFields.get(attribute);
@@ -43,7 +44,7 @@ public class ResultSetHandler {
                             value = AnnotationHandler.handlerAll(value, field);
                         }
                     }
-                    ReflectUtils.set(attribute, value, dataModel);
+                    ReflectUtils.set(field, value, dataModel);
                 }
                 dataModels.add(dataModel);
             }

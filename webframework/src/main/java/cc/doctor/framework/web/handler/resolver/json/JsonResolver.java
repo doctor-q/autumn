@@ -16,4 +16,9 @@ public class JsonResolver implements Resolver {
     public String getName() {
         return "json";
     }
+
+    @Override
+    public String defaultSuffix() {
+        return "json";
+    }
 }

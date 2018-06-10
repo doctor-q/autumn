@@ -8,6 +8,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Created by doctor on 2017/7/21.
+ * json 参数
  */
 @Target(ElementType.PARAMETER)
 @Retention(RUNTIME)

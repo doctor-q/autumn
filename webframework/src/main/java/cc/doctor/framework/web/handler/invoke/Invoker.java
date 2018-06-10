@@ -77,7 +77,9 @@ public class Invoker {
         // 设置参数值
         for (Parameter parameter : parameters) {
             ParameterType parameterType = ParameterType.get(parameter);
-            parameterType.setParameter(parameter, httpMetadata);
+            if (parameterType != null) {
+                parameterType.setParameter(parameter, httpMetadata);
+            }
         }
         Object invoke = method.invoke(instance, CollectionUtils.transform(parameters, new Function<Parameter, Object>() {
             @Override

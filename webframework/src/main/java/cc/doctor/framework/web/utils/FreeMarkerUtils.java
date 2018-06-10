@@ -1,5 +1,6 @@
 package cc.doctor.framework.web.utils;
 
+import freemarker.cache.StringTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
@@ -14,10 +15,11 @@ import java.io.StringWriter;
  */
 public class FreeMarkerUtils {
     public static final Logger log = LoggerFactory.getLogger(FreeMarkerUtils.class);
-    public static String renderTemplate(String root, String path, Object data) {
+    public static String renderTemplate(String base, String path, Object data) {
         Configuration configuration = new Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS);
         try {
-            configuration.setDirectoryForTemplateLoading(new File(root));
+            configuration.setTemplateLoader(new StringTemplateLoader());
+            configuration.setDirectoryForTemplateLoading(new File(base));
             configuration.setObjectWrapper(new DefaultObjectWrapper(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS));
             configuration.setDefaultEncoding("UTF-8");   //这个一定要设置，不然在生成的页面中 会乱码
             Template template = configuration.getTemplate(path);

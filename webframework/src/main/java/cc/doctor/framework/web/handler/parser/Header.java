@@ -16,5 +16,5 @@ public @interface Header {
     /**
      * 别名
      */
-    String value();
+    String value() default "";
 }
