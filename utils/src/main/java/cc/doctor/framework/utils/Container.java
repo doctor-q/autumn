@@ -13,20 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Container {
     private static final Logger log = LoggerFactory.getLogger(Container.class);
     public static final Container container = new Container();
-    public static Map<String, Container> containerMap = new HashMap<>();
     public Map<String, Object> components = new ConcurrentHashMap<>();
-
-    public static Container getContainer(String namespace) {
-        if (namespace == null) {
-            return container;
-        }
-        Container container = containerMap.get(namespace);
-        if (container == null) {
-            container = new Container();
-            containerMap.put(namespace, container);
-        }
-        return container;
-    }
 
     public void addComponent(Object object) {
         if (object != null) {

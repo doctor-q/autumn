@@ -3,6 +3,7 @@ package cc.doctor.framework.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -15,8 +16,8 @@ import java.util.UUID;
 /**
  * Created by doctor on 2017/3/19.
  */
-public class StringUtils {
-    private static final Logger log = LoggerFactory.getLogger(StringUtils.class);
+public class URIUtils {
+    private static final Logger log = LoggerFactory.getLogger(URIUtils.class);
 
     public static String base64UUid() {
         UUID uuid = UUID.randomUUID();
@@ -42,13 +43,21 @@ public class StringUtils {
             }
         }
         if (paramStringBuilder.length() > 0) {
-            return URLEncoder.encode(paramStringBuilder.toString().substring(0, paramStringBuilder.length() - 1));
+            try {
+                return URLEncoder.encode(paramStringBuilder.toString().substring(0, paramStringBuilder.length() - 1), "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                log.error("", e);
+            }
         }
         return "";
     }
 
     public static Map<String, String> toNameValuePair(String kvString) {
-        kvString = URLDecoder.decode(kvString);
+        try {
+            kvString = URLDecoder.decode(kvString, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            log.error("", e);
+        }
         Map<String, String> kvMap = new LinkedHashMap<>();
         String[] split = kvString.split("&");
         for (String kv : split) {
