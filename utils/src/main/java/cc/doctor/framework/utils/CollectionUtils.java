@@ -9,6 +9,10 @@ import java.util.*;
  * Created by doctor on 2017/7/12.
  */
 public class CollectionUtils {
+
+    private CollectionUtils() {
+    }
+
     public static <T> Set<T> asSet(T[] array) {
         Set<T> tSet = new HashSet<>();
         for (T t : array) {
@@ -17,12 +21,37 @@ public class CollectionUtils {
         return tSet;
     }
 
-    public static <F,T>List<T> transform(List<F> froms, Function<F,T> function) {
+    public static <F,T>List<T> transform(Collection<F> froms, Function<F,T> function) {
         List<T> tList = new LinkedList<>();
         for (F from : froms) {
             tList.add(function.transform(from));
         }
         return tList;
+    }
+
+    // lazy transform
+    public static <F,T>Iterable<T> transform(final Iterable<F> froms, final Function<F,T> function) {
+        final Iterator<F> iterator = froms.iterator();
+        return new Iterable<T>() {
+            @Override
+            public Iterator<T> iterator() {
+                return new Iterator<T>() {
+                    @Override
+                    public boolean hasNext() {
+                        return iterator.hasNext();
+                    }
+
+                    @Override
+                    public T next() {
+                        return function.transform(iterator.next());
+                    }
+
+                    @Override
+                    public void remove() {
+                    }
+                };
+            }
+        };
     }
 
     public abstract static class JoinerFilter<F, T> {
@@ -37,11 +66,11 @@ public class CollectionUtils {
         return join(fs, on);
     }
 
-    public static <F> String join(Collection<F> items, String on) {
+    public static <F> String join(Iterable<F> items, String on) {
         return join(items, on, null);
     }
 
-    public static <F, T> String join(Collection<F> items, String on, JoinerFilter<F, T> joinerFilter) {
+    public static <F, T> String join(Iterable<F> items, String on, JoinerFilter<F, T> joinerFilter) {
         StringBuilder join = new StringBuilder();
         for (F item : items) {
             if (joinerFilter != null) {
